@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const client = axios.create({
-    baseURL: "http://localhost:3000/api/v1", // adjust base path
+    baseURL: "https://shitblej.onrender.com/api/v1", // adjust base path
 });
 
 // Auth token and Content-Type interceptor
