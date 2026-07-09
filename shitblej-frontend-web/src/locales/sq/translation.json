@@ -1,0 +1,113 @@
+{
+  "common": {
+    "loading": "Duke u ngarkuar...",
+    "error": "Gabim",
+    "save": "Ruaj",
+    "cancel": "Anulo",
+    "delete": "Fshi",
+    "edit": "Ndrysho",
+    "search": "Kërko",
+    "filter": "Filtro",
+    "sort": "Rendit",
+    "close": "Mbyll"
+  },
+  "nav": {
+    "home": "Ballina",
+    "ladies": "Gratë",
+    "men": "Burrat",
+    "designer_items": "Artikuj Dizajnerësh",
+    "children": "Fëmijë",
+    "electronics": "Elektronikë",
+    "entertainment": "Argëtim",
+    "hobby_collector": "Hobi & Koleksionues",
+    "sport": "Sport",
+    "sell": "Shit",
+    "inbox": "Mesazhe",
+    "profile": "Profili",
+    "signin": "Hyr",
+    "signup": "Regjistrohu",
+    "logout": "Dil"
+  },
+  "product": {
+    "condition": "Gjendja",
+    "category": "Kategoria",
+    "brand": "Marka",
+    "color": "Ngjyra",
+    "size": "Madhësia",
+    "location": "Vendndodhja",
+    "price": "Çmimi",
+    "description": "Përshkrimi",
+    "details": "Detajet",
+    "seller": "Shitësi",
+    "posted": "Postuar",
+    "buy_now": "Blej Tani",
+    "make_offer": "Bëj Ofertë",
+    "chat": "Bisedo",
+    "favorite": "Të Preferuara"
+  },
+  "conditions": {
+    "new": "I Ri",
+    "like-new": "Si i Ri",
+    "excellent": "Shkëlqyer",
+    "good": "Mirë",
+    "fair": "Mesatar",
+    "poor": "Për Pjesë"
+  },
+  "categories": {
+    "ladies": "Gratë",
+    "men": "Burrat",
+    "designer-items": "Artikuj Dizajnerësh",
+    "children": "Fëmijë",
+    "home": "Shtëpi",
+    "electronics": "Elektronikë",
+    "entertainment": "Argëtim",
+    "hobby-collector": "Hobi & Koleksionues",
+    "sport": "Sport"
+  },
+  "sell": {
+    "title": "Shit Artikullin Tënd",
+    "upload_images": "Ngarko Fotot",
+    "product_name": "Emri i Produktit",
+    "product_description": "Përshkrimi i Produktit",
+    "select_category": "Zgjidh Kategorinë",
+    "select_condition": "Zgjidh Gjendjen",
+    "set_price": "Vendos Çmimin",
+    "post_item": "Posto Artikullin"
+  },
+  "hero": {
+    "slide1_title": "Zbulo Oferta të Mahnitshme",
+    "slide1_description": "Bli dhe shit me besim. Tregu yt për çdo gjë.",
+    "slide2_title": "Shit Çdo Gjë, Kur të Duash",
+    "slide2_description": "Listo artikujt e tu në minuta dhe arrij mijëra blerës.",
+    "slide3_title": "Bli Lokal, Kurse Më Shumë",
+    "slide3_description": "Gjej oferta të shkëlqyera nga shitësit në zonën tënde.",
+    "shop_now": "Bli Tani",
+    "start_selling": "Fillo të Shitësh"
+  },
+  "footer": {
+    "tagline": "Destinacioni yt premium për blerje dhe shitje artikujsh unikë. Zbulo oferta, shit thesaret e tua, dhe bashkohu me komunitetin tonë.",
+    "quick_links": "Lidhje të Shpejta",
+    "support": "Mbështetje",
+    "stay_connected": "Qëndro i Lidhur",
+    "newsletter_text": "Abonohu në buletinin tonë për përditësimet e fundit dhe ofertat ekskluzive.",
+    "email_placeholder": "Vendos email-in tënd",
+    "home": "Ballina",
+    "search": "Kërko",
+    "sell_item": "Shit Artikull",
+    "login": "Hyr",
+    "help_center": "Qendra e Ndihmës",
+    "terms_of_service": "Kushtet e Shërbimit",
+    "privacy_policy": "Politika e Privatësisë",
+    "cookie_policy": "Politika e Cookies",
+    "privacy": "Privatësia",
+    "terms": "Kushtet",
+    "sitemap": "Harta e Faqes",
+    "all_rights_reserved": "Të gjitha të drejtat e rezervuara."
+  },
+  "messages": {
+    "no_products": "Nuk u gjetën produkte",
+    "loading_products": "Duke ngarkuar produktet...",
+    "product_not_found": "Produkti nuk u gjet",
+    "error_loading": "Dështoi ngarkimi i të dhënave"
+  }
+}

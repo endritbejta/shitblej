@@ -1,0 +1,113 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "close": "Close"
+  },
+  "nav": {
+    "home": "Home",
+    "ladies": "Ladies",
+    "men": "Men",
+    "designer_items": "Designer Items",
+    "children": "Children",
+    "electronics": "Electronics",
+    "entertainment": "Entertainment",
+    "hobby_collector": "Hobby & Collector Items",
+    "sport": "Sport",
+    "sell": "Sell",
+    "inbox": "Inbox",
+    "profile": "Profile",
+    "signin": "Sign In",
+    "signup": "Sign Up",
+    "logout": "Logout"
+  },
+  "product": {
+    "condition": "Condition",
+    "category": "Category",
+    "brand": "Brand",
+    "color": "Color",
+    "size": "Size",
+    "location": "Location",
+    "price": "Price",
+    "description": "Description",
+    "details": "Details",
+    "seller": "Seller",
+    "posted": "Posted",
+    "buy_now": "Buy Now",
+    "make_offer": "Make Offer",
+    "chat": "Chat",
+    "favorite": "Favorite"
+  },
+  "conditions": {
+    "new": "Brand New",
+    "like-new": "Like New",
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "poor": "For Parts"
+  },
+  "categories": {
+    "ladies": "Ladies",
+    "men": "Men",
+    "designer-items": "Designer Items",
+    "children": "Children",
+    "home": "Home",
+    "electronics": "Electronics",
+    "entertainment": "Entertainment",
+    "hobby-collector": "Hobby & Collector Items",
+    "sport": "Sport"
+  },
+  "sell": {
+    "title": "Sell Your Item",
+    "upload_images": "Upload Images",
+    "product_name": "Product Name",
+    "product_description": "Product Description",
+    "select_category": "Select Category",
+    "select_condition": "Select Condition",
+    "set_price": "Set Price",
+    "post_item": "Post Item"
+  },
+  "hero": {
+    "slide1_title": "Discover Amazing Deals",
+    "slide1_description": "Buy and sell with confidence. Your marketplace for everything.",
+    "slide2_title": "Sell Anything, Anytime",
+    "slide2_description": "List your items in minutes and reach thousands of buyers.",
+    "slide3_title": "Shop Local, Save More",
+    "slide3_description": "Find great deals from sellers in your area.",
+    "shop_now": "Shop Now",
+    "start_selling": "Start Selling"
+  },
+  "footer": {
+    "tagline": "Your premium destination for buying and selling unique items. Discover deals, sell your treasures, and join our community.",
+    "quick_links": "Quick Links",
+    "support": "Support",
+    "stay_connected": "Stay Connected",
+    "newsletter_text": "Subscribe to our newsletter for the latest updates and exclusive offers.",
+    "email_placeholder": "Enter your email",
+    "home": "Home",
+    "search": "Search",
+    "sell_item": "Sell Item",
+    "login": "Login",
+    "help_center": "Help Center",
+    "terms_of_service": "Terms of Service",
+    "privacy_policy": "Privacy Policy",
+    "cookie_policy": "Cookie Policy",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "sitemap": "Sitemap",
+    "all_rights_reserved": "All rights reserved."
+  },
+  "messages": {
+    "no_products": "No products found",
+    "loading_products": "Loading products...",
+    "product_not_found": "Product not found",
+    "error_loading": "Failed to load data"
+  }
+}

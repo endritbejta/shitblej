@@ -1,0 +1,394 @@
+[
+  {
+    "name": "iPhone 13 Pro",
+    "description": "Apple iPhone 13 Pro 128GB in Sierra Blue. Excellent condition, barely used. Includes original box and charger.",
+    "price": 650,
+    "category": "electronics",
+    "condition": "Used - Like New",
+    "size": "128GB",
+    "brand": "Apple",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Sony WH-1000XM4 Headphones",
+    "description": "Premium noise-cancelling wireless headphones. Industry-leading sound quality. Comes with case and cables.",
+    "price": 220,
+    "category": "electronics",
+    "condition": "Used - Very Good",
+    "size": "One Size",
+    "brand": "Sony",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "MacBook Air M1",
+    "description": "Apple MacBook Air with M1 chip, 8GB RAM, 256GB SSD. Perfect for students and professionals. Battery health 95%.",
+    "price": 750,
+    "category": "electronics",
+    "condition": "Used - Very Good",
+    "size": "13 inch",
+    "brand": "Apple",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Samsung 4K Smart TV",
+    "description": "55-inch Samsung 4K UHD Smart TV. Crystal clear picture quality. Includes remote and wall mount.",
+    "price": 400,
+    "category": "electronics",
+    "condition": "Used - Good",
+    "size": "55 inch",
+    "brand": "Samsung",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1593359863503-f598b8f0e3f9?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "IKEA Sofa Bed",
+    "description": "Comfortable 3-seater sofa bed from IKEA. Grey fabric. Converts easily to a bed. Great for small spaces.",
+    "price": 250,
+    "category": "home",
+    "condition": "Used - Good",
+    "size": "3-Seater",
+    "brand": "IKEA",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Dyson V11 Vacuum Cleaner",
+    "description": "Powerful cordless vacuum cleaner. Multiple attachments included. Battery lasts 60 minutes.",
+    "price": 320,
+    "category": "home",
+    "condition": "Used - Very Good",
+    "size": "Standard",
+    "brand": "Dyson",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Nespresso Coffee Machine",
+    "description": "Nespresso Vertuo coffee maker. Makes perfect espresso and coffee. Includes milk frother.",
+    "price": 120,
+    "category": "home",
+    "condition": "Used - Like New",
+    "size": "Compact",
+    "brand": "Nespresso",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Mountain Bike",
+    "description": "Trek mountain bike with 21-speed gears. Aluminum frame. Perfect for trails and city riding.",
+    "price": 380,
+    "category": "sport",
+    "condition": "Used - Good",
+    "size": "Medium",
+    "brand": "Trek",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1571333250630-f0230c320b6d?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Wilson Tennis Racket",
+    "description": "Professional Wilson tennis racket. Great control and power. Includes protective cover.",
+    "price": 75,
+    "category": "sport",
+    "condition": "Used - Very Good",
+    "size": "Standard",
+    "brand": "Wilson",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1617083278968-9f4a8c4c5c5f?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Yoga Mat & Blocks Set",
+    "description": "Premium yoga mat with two foam blocks. Non-slip surface. Includes carrying strap.",
+    "price": 35,
+    "category": "sport",
+    "condition": "Used - Like New",
+    "size": "Standard",
+    "brand": "Manduka",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Floral Summer Dress",
+    "description": "Beautiful floral print summer dress. Light and breezy fabric. Perfect for warm weather. Size M.",
+    "price": 45,
+    "category": "ladies",
+    "condition": "Used - Like New",
+    "size": "M",
+    "brand": "H&M",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Leather Ankle Boots",
+    "description": "Elegant black leather ankle boots with block heel. Comfortable for all-day wear. Size EU 38.",
+    "price": 65,
+    "category": "ladies",
+    "condition": "Used - Very Good",
+    "size": "38",
+    "brand": "Zara",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Cashmere Sweater",
+    "description": "Luxurious cashmere sweater in cream color. Soft and warm. Perfect for layering. Size S.",
+    "price": 85,
+    "category": "ladies",
+    "condition": "Used - Like New",
+    "size": "S",
+    "brand": "Massimo Dutti",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Slim Fit Chinos",
+    "description": "Classic navy blue chinos. Slim fit design. Versatile for casual and smart-casual looks. Size 32.",
+    "price": 40,
+    "category": "men",
+    "condition": "Used - Very Good",
+    "size": "32",
+    "brand": "Uniqlo",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Leather Belt",
+    "description": "Genuine leather belt in brown. Classic buckle design. Fits waist sizes 30-34. Timeless accessory.",
+    "price": 25,
+    "category": "men",
+    "condition": "Used - Good",
+    "size": "32",
+    "brand": "Tommy Hilfiger",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1624222247344-550fb60583bb?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Oxford Dress Shirt",
+    "description": "Classic white Oxford dress shirt. Perfect for office or formal events. Size L. Wrinkle-resistant fabric.",
+    "price": 30,
+    "category": "men",
+    "condition": "Used - Very Good",
+    "size": "L",
+    "brand": "Ralph Lauren",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Gucci Marmont Bag",
+    "description": "Authentic Gucci GG Marmont matelassé shoulder bag. Black leather with gold hardware. Comes with dust bag.",
+    "price": 1200,
+    "category": "designer-items",
+    "condition": "Used - Very Good",
+    "size": "Small",
+    "brand": "Gucci",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Louis Vuitton Wallet",
+    "description": "Authentic Louis Vuitton monogram canvas wallet. Multiple card slots. Excellent condition with minimal wear.",
+    "price": 350,
+    "category": "designer-items",
+    "condition": "Used - Very Good",
+    "size": "Standard",
+    "brand": "Louis Vuitton",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1622434641406-a158123450f9?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Prada Sunglasses",
+    "description": "Designer Prada sunglasses. Oversized cat-eye frame in tortoiseshell. UV protection. Includes case.",
+    "price": 180,
+    "category": "designer-items",
+    "condition": "Used - Like New",
+    "size": "One Size",
+    "brand": "Prada",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Kids Bicycle with Training Wheels",
+    "description": "Colorful children's bicycle with training wheels. Suitable for ages 4-7. Includes bell and basket.",
+    "price": 80,
+    "category": "children",
+    "condition": "Used - Good",
+    "size": "16 inch",
+    "brand": "Schwinn",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1617047209407-c1c838e8b39f?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "LEGO Classic Building Set",
+    "description": "Large LEGO classic building blocks set. 1000+ pieces. Perfect for creative play. Ages 4+.",
+    "price": 45,
+    "category": "children",
+    "condition": "Used - Very Good",
+    "size": "Large",
+    "brand": "LEGO",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1587654780291-39c9404d746b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Children's Winter Jacket",
+    "description": "Warm padded winter jacket for kids. Water-resistant. Bright red color with hood. Size 6-7 years.",
+    "price": 35,
+    "category": "children",
+    "condition": "Used - Very Good",
+    "size": "6-7Y",
+    "brand": "The North Face",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "PlayStation 5 Console",
+    "description": "Sony PlayStation 5 gaming console. Includes controller and cables. Barely used, in excellent condition.",
+    "price": 450,
+    "category": "entertainment",
+    "condition": "Used - Like New",
+    "size": "Standard",
+    "brand": "Sony",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1622297845775-5ff3fef71d13?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Vinyl Record Collection",
+    "description": "Collection of 50 classic vinyl records. Various genres including rock, jazz, and blues. Great condition.",
+    "price": 150,
+    "category": "entertainment",
+    "condition": "Used - Very Good",
+    "size": "50 Records",
+    "brand": "Various",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Acoustic Guitar",
+    "description": "Yamaha acoustic guitar. Rich, warm tone. Perfect for beginners and intermediate players. Includes case.",
+    "price": 180,
+    "category": "entertainment",
+    "condition": "Used - Good",
+    "size": "Full Size",
+    "brand": "Yamaha",
+    "user": "69234ea945809b320b0de70b",
+    "images": [
+      "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Vintage Camera Collection",
+    "description": "Set of 3 vintage film cameras from the 1970s. Canon AE-1, Nikon FM, and Pentax K1000. All functional.",
+    "price": 320,
+    "category": "hobby-collector",
+    "condition": "Used - Good",
+    "size": "Set of 3",
+    "brand": "Various",
+    "user": "69234ea945809b320b0de70c",
+    "images": [
+      "https://images.unsplash.com/photo-1495121553079-4c61bcce1894?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Rare Pokémon Card Collection",
+    "description": "Collection of rare Pokémon cards including holographic Charizard. Over 200 cards. Mint condition.",
+    "price": 450,
+    "category": "hobby-collector",
+    "condition": "Used - Like New",
+    "size": "200+ Cards",
+    "brand": "Pokémon",
+    "user": "69234ea945809b320b0de70d",
+    "images": [
+      "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1613771404721-1f92d799e49f?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  {
+    "name": "Model Train Set",
+    "description": "Complete HO scale model train set. Includes locomotive, cars, tracks, and scenery. Perfect for collectors.",
+    "price": 280,
+    "category": "hobby-collector",
+    "condition": "Used - Very Good",
+    "size": "Complete Set",
+    "brand": "Märklin",
+    "user": "6925f52cf149fd9a820483a0",
+    "images": [
+      "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?auto=format&fit=crop&w=800&q=80"
+    ]
+  }
+]
