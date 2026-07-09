@@ -1,0 +1,293 @@
+{
+	"info": {
+		"_postman_id": "shitblej-api-collection",
+		"name": "Shitblej API",
+		"description": "Complete API collection for Shitblej backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users/register",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "users", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users/login",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "users", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users/me",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "users", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/products",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "products"]
+						}
+					}
+				},
+				{
+					"name": "Get Single Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/products/:id",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "PRODUCT_ID_HERE"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Product Name\",\n  \"description\": \"Product description\",\n  \"price\": 99.99,\n  \"category\": \"electronics\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/products",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "products"]
+						}
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Product Name\",\n  \"price\": 149.99\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/products/:id",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "PRODUCT_ID_HERE"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/products/:id",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "PRODUCT_ID_HERE"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sender\": \"USER_ID_1\",\n  \"receiver\": \"USER_ID_2\",\n  \"text\": \"Hello! This is a test message.\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/messages",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "messages"]
+						},
+						"description": "Send a new message between users. Requires authentication."
+					}
+				},
+				{
+					"name": "Get Conversation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/messages/:userId?currentUserId=YOUR_USER_ID",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "messages", ":userId"],
+							"query": [
+								{
+									"key": "currentUserId",
+									"value": "YOUR_USER_ID",
+									"description": "The ID of the current user"
+								}
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "OTHER_USER_ID",
+									"description": "The ID of the user you want to see messages with"
+								}
+							]
+						},
+						"description": "Get all messages between current user and another user"
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get Single User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users/:id",
+							"host": ["{{BASE_URL}}"],
+							"path": ["api", "v1", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "USER_ID_HERE"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "TOKEN",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

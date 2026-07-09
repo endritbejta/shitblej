@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Local env files
+.env
+**/.env
+.env*.local
+**/.env*.local
+.env.production
+**/.env.production
+.env.development
+**/.env.development
+.env.staging
+**/.env.staging
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+
+# Expo and Web build directories
+frontend mobile/.expo/
+**/dist/
+**/dist-ssr/
+frontend mobile/web-build/
+frontend mobile/expo-env.d.ts
+
+# Native builds & keystores
+frontend mobile/*.orig.*
+frontend mobile/*.jks
+frontend mobile/*.p8
+frontend mobile/*.p12
+frontend mobile/*.key
+frontend mobile/*.mobileprovision
+
+# Metro health checks
+frontend mobile/.metro-health-check*
+
+# Debug logs
+*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# TypeScript build info
+frontend mobile/*.tsbuildinfo

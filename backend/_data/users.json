@@ -1,0 +1,26 @@
+[
+  {
+    "name": "John Doe",
+    "email": "john@gmail.com",
+    "password": "password123",
+    "phone": "+38344111222",
+    "role": "user",
+    "image": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"
+  },
+  {
+    "name": "Jane Smith",
+    "email": "jane@gmail.com",
+    "password": "password123",
+    "phone": "+38344333444",
+    "role": "user",
+    "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80"
+  },
+  {
+    "name": "Admin User",
+    "email": "admin@gmail.com",
+    "password": "password123",
+    "phone": "+38344555666",
+    "role": "admin",
+    "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
+  }
+]
