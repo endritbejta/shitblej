@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CollectionCacheProvider } from "./context/CollectionCacheContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { SearchProvider } from "./context/SearchContext";
+import ScrollToTop from "./components/ScrollToTop";
 import Loading from "./components/Loading";
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -27,6 +28,7 @@ export default function App() {
             <WishlistProvider>
                 <CollectionCacheProvider>
                     <BrowserRouter>
+                        <ScrollToTop />
                         <SearchProvider>
                             <Suspense fallback={<Loading fullScreen />}>
                                 <Routes>

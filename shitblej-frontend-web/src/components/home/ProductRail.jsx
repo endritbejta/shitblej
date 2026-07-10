@@ -20,6 +20,10 @@ export default function ProductRail({
 }) {
   const scroller = useRef(null);
 
+  // Nothing to show and nothing loading — hide the whole section (header +
+  // arrows) rather than render an empty rail.
+  if (!loading && products.length === 0) return null;
+
   const scrollBy = (dir) => {
     const el = scroller.current;
     if (!el) return;

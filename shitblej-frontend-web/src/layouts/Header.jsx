@@ -11,6 +11,8 @@ import Container from "../components/ui/Container";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { cn } from "../utils/cn";
+import logoBlack from "../assets/shitblej.png"; // dark text — for light theme
+import logoWhite from "../assets/shitblej-white.png"; // white text — for dark theme
 
 const iconLink =
   "relative grid h-10 w-10 place-items-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-brand-400";
@@ -65,9 +67,12 @@ const Header = () => {
         <div className="flex h-16 items-center gap-4">
           <Link
             to="/"
-            className="shrink-0 text-2xl font-extrabold tracking-tighter text-brand-500 transition-opacity hover:opacity-80"
+            aria-label="Shitblej — home"
+            className="shrink-0 transition-opacity hover:opacity-80"
           >
-            SHITBLEJ
+            {/* Logo swaps with the OS theme (media-based dark mode) */}
+            <img src={logoBlack} alt="Shitblej" className="h-6 w-auto dark:hidden" />
+            <img src={logoWhite} alt="Shitblej" className="hidden h-6 w-auto dark:block" />
           </Link>
 
           {/* Primary, width-filling search (desktop) */}

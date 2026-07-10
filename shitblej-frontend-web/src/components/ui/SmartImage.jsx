@@ -19,7 +19,7 @@ export default function SmartImage({
 
   if (!src || failed) {
     return (
-      <div
+      <picture
         className={cn(
           "flex items-center justify-center bg-gray-100 text-gray-300 dark:bg-zinc-800 dark:text-zinc-600",
           wrapperClassName,
@@ -28,7 +28,7 @@ export default function SmartImage({
         aria-label={alt}
       >
         <ImageOff className="h-6 w-6" />
-      </div>
+      </picture>
     );
   }
 
