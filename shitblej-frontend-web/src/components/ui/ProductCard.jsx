@@ -66,7 +66,7 @@ function ProductCardComponent({ product, index = 0, priority = false, className 
         <div className="mt-auto flex items-center justify-between pt-1 text-xs text-gray-500 dark:text-gray-400">
           <span className="flex min-w-0 items-center gap-1">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-500" />
-            <span className="truncate">{product.location || "Kosovo"}</span>
+            <span className="truncate">{product.location || product.address || "Kosovo"}</span>
           </span>
           {rating > 0 && (
             <span className="flex items-center gap-1 text-amber-500">

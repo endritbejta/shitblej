@@ -28,7 +28,7 @@ export default function ProductInfo({ product, isMobile = false }) {
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{product.name}</h1>
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             <MapPin className="h-4 w-4 text-brand-500" />
-                            {product.location || "Prishtina, Kosovo"}
+                            {product.location || product.address || "Prishtina, Kosovo"}
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ export default function ProductInfo({ product, isMobile = false }) {
                         </h1>
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             <span className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" /> {product.location || "Prishtina, Kosovo"}
+                                <MapPin className="h-4 w-4" /> {product.location || product.address || "Prishtina, Kosovo"}
                             </span>
                             <span>•</span>
                             <span>Posted {product.createdAt ? timeAgo(product.createdAt) : "recently"}</span>
