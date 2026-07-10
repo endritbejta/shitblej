@@ -63,7 +63,7 @@ const Footer = () => {
               {t("footer.newsletter_text")}
             </p>
             <form
-              className="flex items-center gap-2 rounded-full border border-gray-300 bg-white p-1 pl-4 focus-within:border-brand-500 dark:border-zinc-700 dark:bg-zinc-900"
+              className="flex items-center gap-2 rounded-full border border-gray-300 bg-white p-1 pl-4 dark:border-zinc-700 dark:bg-zinc-900"
               onSubmit={(e) => e.preventDefault()}
             >
               <input
