@@ -82,15 +82,13 @@ export default function Home() {
         <ProductGrid products={recent} loading={loading} skeletonCount={10} />
       </section>
 
-      {(loading || luxury.length > 0) && (
-        <ProductRail
-          eyebrow="Luxury"
-          title="Editor’s luxury picks"
-          subtitle="Premium pieces worth the splurge."
-          products={luxury}
-          loading={loading}
-        />
-      )}
+      <ProductRail
+        eyebrow="Luxury"
+        title="Editor’s luxury picks"
+        subtitle="Premium pieces worth the splurge."
+        products={luxury}
+        loading={loading}
+      />
 
       <section className="space-y-6">
         <SectionHeader
