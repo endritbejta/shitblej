@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaHome, FaPlusCircle, FaInbox, FaUser, FaStore } from 'react-icons/fa';
+import { Home, Store, PlusCircle, Inbox, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function MobileBottomNav() {
@@ -7,11 +7,11 @@ export default function MobileBottomNav() {
     const { user } = useAuth();
 
     const navItems = [
-        { path: '/', icon: FaHome, label: 'Home' },
-        { path: '/collections/ladies', icon: FaStore, label: 'Shop' },
-        { path: '/sell', icon: FaPlusCircle, label: 'Sell' },
-        { path: '/inbox', icon: FaInbox, label: 'Inbox' },
-        { path: user ? '/profile' : '/login', icon: FaUser, label: 'Profile' },
+        { path: '/', icon: Home, label: 'Home' },
+        { path: '/collections/ladies', icon: Store, label: 'Shop' },
+        { path: '/sell', icon: PlusCircle, label: 'Sell' },
+        { path: '/inbox', icon: Inbox, label: 'Inbox' },
+        { path: user ? '/profile' : '/login', icon: User, label: 'Profile' },
     ];
 
     const isActive = (path) => {
@@ -44,7 +44,7 @@ export default function MobileBottomNav() {
                                         : 'text-gray-700 dark:text-gray-400'
                                 }`}
                             >
-                                <Icon className={`text-lg ${active ? 'scale-110' : ''} transition-transform`} />
+                                <Icon className={`h-5 w-5 transition-transform duration-200 ${active ? 'scale-110' : ''}`} strokeWidth={active ? 2.25 : 2} />
                                 <span className={`text-xs font-medium ${active ? 'font-semibold' : ''}`}>
                                     {item.label}
                                 </span>

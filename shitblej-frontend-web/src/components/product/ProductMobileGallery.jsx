@@ -1,4 +1,4 @@
-import { FaArrowLeft } from "react-icons/fa";
+import { ArrowLeft } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -12,7 +12,7 @@ export default function ProductMobileGallery({ images, productName, onBack }) {
                 onClick={onBack}
                 className="fixed top-4 left-4 z-10 p-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-full shadow-lg text-gray-900 dark:text-white"
             >
-                <FaArrowLeft />
+                <ArrowLeft className="h-5 w-5" />
             </button>
 
             {/* Image Gallery */}

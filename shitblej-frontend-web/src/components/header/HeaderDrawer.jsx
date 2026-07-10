@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import HeaderDrawerCategories from "./HeaderDrawerCategories";
 import { useAuth } from "../../context/AuthContext";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen, headerHeight }) => {
     const drawerRef = useRef(null);
@@ -71,6 +72,12 @@ const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen, headerHeight }) =
                         SIGN IN
                     </Link>
                 )}
+            </div>
+
+            {/* Language */}
+            <div className="mt-2 flex items-center justify-between px-4 md:hidden">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Language</span>
+                <LanguageSwitcher />
             </div>
         </div>
     );

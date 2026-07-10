@@ -1,47 +1,42 @@
 import axios from "axios";
 
+// In dev, go through the Vite proxy (/api) to sidestep CORS; in production,
+// talk to the hosted API directly.
 const client = axios.create({
-    baseURL: "https://shitblej.onrender.com/api/v1", // adjust base path
+    baseURL: import.meta.env.DEV
+        ? "/api/v1"
+        : "https://shitblej.onrender.com/api/v1",
 });
 
 // Auth token and Content-Type interceptor
 client.interceptors.request.use((config) => {
     // Check both localStorage and sessionStorage for token
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    
-    console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`);
-    
+
     if (token && token !== "undefined" && token !== "null") {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log("[API Request] Attaching token:", token.substring(0, 10) + "...");
-    } else {
-        console.warn("[API Request] No token found in storage!");
     }
-    
-    // Only set Content-Type to JSON if not FormData
-    // FormData will set its own Content-Type with boundary
+
+    // Only set Content-Type to JSON if not FormData.
+    // FormData sets its own Content-Type with the multipart boundary.
     if (!(config.data instanceof FormData)) {
         config.headers["Content-Type"] = "application/json";
     }
-    
+
     return config;
 });
 
-// Log responses and errors
+// Surface real errors, stay quiet otherwise.
 client.interceptors.response.use(
-    (response) => {
-        console.log(`[API Response] ${response.status} ${response.config.url}`, response.data);
-        return response;
-    },
+    (response) => response,
     (error) => {
-        if (error.response) {
-            // Server responded with a status code outside 2xx
-            console.error(`[API Error] ${error.response.status} ${error.config.url}`, error.response.data);
-        } else if (error.request) {
-            // Request was made but no response received (Network Error/CORS)
-            console.error("[API Error] No response received (Network Error or CORS):", error.request);
-        } else {
-            console.error("[API Error] Request setup failed:", error.message);
+        if (import.meta.env.DEV) {
+            const url = error.config?.url;
+            if (error.response) {
+                console.error(`[API] ${error.response.status} ${url}`, error.response.data);
+            } else {
+                console.error("[API] Network error", url, error.message);
+            }
         }
         return Promise.reject(error);
     }

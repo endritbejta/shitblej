@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { FaUser, FaCamera } from 'react-icons/fa';
+import { User, Camera } from 'lucide-react';
 
 export default function ProfileHeader({ user, onAvatarChange, uploadingAvatar }) {
     const fileInputRef = useRef(null);
@@ -18,7 +18,7 @@ export default function ProfileHeader({ user, onAvatarChange, uploadingAvatar })
                             <img src={user.image || user.avatar} alt={user.name} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <FaUser className="text-4xl" />
+                                <User className="h-10 w-10" />
                             </div>
                         )}
                     </div>
@@ -37,7 +37,7 @@ export default function ProfileHeader({ user, onAvatarChange, uploadingAvatar })
                         {uploadingAvatar ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                         ) : (
-                            <FaCamera className="text-sm" />
+                            <Camera className="h-4 w-4" />
                         )}
                     </button>
                 </div>
