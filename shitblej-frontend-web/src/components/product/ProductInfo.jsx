@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { FaMapMarkerAlt, FaRegHeart } from "react-icons/fa";
+import { MapPin } from "lucide-react";
+import WishlistButton from "../ui/WishlistButton";
 
 const timeAgo = (date) => {
     if (!date) return "";
@@ -26,11 +27,14 @@ export default function ProductInfo({ product, isMobile = false }) {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{product.name}</h1>
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                            <FaMapMarkerAlt className="text-green-500" />
+                            <MapPin className="h-4 w-4 text-brand-500" />
                             {product.location || "Prishtina, Kosovo"}
                         </div>
                     </div>
-                    <span className="text-2xl font-bold text-green-600 dark:text-green-500">${product.price}</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl font-bold text-green-600 dark:text-green-500">${product.price}</span>
+                        <WishlistButton product={product} variant="surface" stopNavigation={false} />
+                    </div>
                 </div>
 
                 {/* Badges */}
@@ -76,15 +80,13 @@ export default function ProductInfo({ product, isMobile = false }) {
                         </h1>
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             <span className="flex items-center gap-1">
-                                <FaMapMarkerAlt /> {product.location || "Prishtina, Kosovo"}
+                                <MapPin className="h-4 w-4" /> {product.location || "Prishtina, Kosovo"}
                             </span>
                             <span>•</span>
                             <span>Posted {product.createdAt ? timeAgo(product.createdAt) : "recently"}</span>
                         </div>
                     </div>
-                    <button className="p-3 rounded-full bg-gray-50 dark:bg-zinc-800 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
-                        <FaRegHeart className="text-xl" />
-                    </button>
+                    <WishlistButton product={product} variant="surface" size="lg" stopNavigation={false} />
                 </div>
                 <div className="mt-6">
                     <span className="text-4xl font-bold text-green-600 dark:text-green-500">

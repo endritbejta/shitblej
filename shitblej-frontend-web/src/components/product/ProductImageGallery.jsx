@@ -1,4 +1,4 @@
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ProductImageGallery({ images, activeImage, setActiveImage, scrollY, productName }) {
     const nextImage = () => {
@@ -27,13 +27,13 @@ export default function ProductImageGallery({ images, activeImage, setActiveImag
                             onClick={(e) => { e.stopPropagation(); prevImage(); }}
                             className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-zinc-900 shadow-lg"
                         >
-                            <FaChevronLeft className="text-gray-900 dark:text-white" />
+                            <ChevronLeft className="h-4 w-4 text-gray-900 dark:text-white" />
                         </button>
                         <button 
                             onClick={(e) => { e.stopPropagation(); nextImage(); }}
                             className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-zinc-900 shadow-lg"
                         >
-                            <FaChevronRight className="text-gray-900 dark:text-white" />
+                            <ChevronRight className="h-4 w-4 text-gray-900 dark:text-white" />
                         </button>
                     </>
                 )}

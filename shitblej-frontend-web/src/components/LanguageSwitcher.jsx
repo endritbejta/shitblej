@@ -35,23 +35,25 @@ export default function LanguageSwitcher() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="px-3 py-2 rounded-full border border-gray-300 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:border-green-500 dark:hover:border-green-400 transition-all duration-300 text-gray-700 dark:text-gray-300 font-medium text-sm uppercase"
+                className="rounded-full border border-gray-300 px-3 py-1.5 text-sm font-medium uppercase text-gray-600 transition-colors hover:border-brand-500 hover:text-brand-600 dark:border-zinc-700 dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-400"
             >
                 {currentLanguage.code}
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-800 py-2 z-50">
+                <div className="absolute bottom-full right-0 z-50 mb-2 w-36 origin-bottom animate-scale-in rounded-2xl border border-gray-200 bg-white p-1.5 shadow-overlay dark:border-zinc-800 dark:bg-zinc-900">
                     {LANGUAGES.map((lang) => (
                         <button
                             key={lang.code}
                             onClick={() => changeLanguage(lang.code)}
-                            className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${
-                                i18n.language === lang.code ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-700 dark:text-gray-300'
+                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors ${
+                                i18n.language === lang.code
+                                    ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
+                                    : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800'
                             }`}
                         >
-                            <span className="text-sm font-medium uppercase">{lang.code}</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 block">{lang.label}</span>
+                            <span className="text-sm font-medium">{lang.label}</span>
+                            <span className="text-xs uppercase text-gray-400">{lang.code}</span>
                         </button>
                     ))}
                 </div>

@@ -1,4 +1,4 @@
-import { FaTimes } from "react-icons/fa";
+import { X } from "lucide-react";
 
 export default function BuyModal({ isOpen, onClose, product, images, onConfirm }) {
     if (!isOpen) return null;
@@ -9,7 +9,7 @@ export default function BuyModal({ isOpen, onClose, product, images, onConfirm }
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Confirm Purchase</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <FaTimes className="text-xl" />
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
                 

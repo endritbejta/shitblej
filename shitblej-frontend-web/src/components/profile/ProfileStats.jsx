@@ -1,4 +1,4 @@
-import { FaBoxOpen, FaSignOutAlt } from 'react-icons/fa';
+import { LogOut } from 'lucide-react';
 
 export default function ProfileStats({ listingsCount, onLogout }) {
     return (
@@ -13,7 +13,7 @@ export default function ProfileStats({ listingsCount, onLogout }) {
                 onClick={onLogout}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-semibold rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
             >
-                <FaSignOutAlt />
+                <LogOut className="h-4 w-4" />
                 Sign Out
             </button>
         </div>
