@@ -34,9 +34,10 @@ export async function getProductById(id) {
     return data;
 }
 
-// Create a new product
-export async function createProduct(payload) {
-    const { data } = await client.post("/products", payload);
+// Create a new product. Accepts an axios config (e.g. onUploadProgress) so
+// callers can surface upload progress for the image files.
+export async function createProduct(payload, config = {}) {
+    const { data } = await client.post("/products", payload, config);
     return data;
 }
 

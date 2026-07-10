@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { cn } from "../../utils/cn";
 
 /**
@@ -41,6 +42,8 @@ const Button = forwardRef(function Button(
     to,
     href,
     fullWidth = false,
+    loading = false,
+    disabled,
     children,
     ...props
   },
@@ -54,24 +57,31 @@ const Button = forwardRef(function Button(
     className
   );
 
+  const content = (
+    <>
+      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {children}
+    </>
+  );
+
   if (to) {
     return (
       <Link ref={ref} to={to} className={classes} {...props}>
-        {children}
+        {content}
       </Link>
     );
   }
   if (href) {
     return (
       <a ref={ref} href={href} className={classes} {...props}>
-        {children}
+        {content}
       </a>
     );
   }
   const Comp = as || "button";
   return (
-    <Comp ref={ref} className={classes} {...props}>
-      {children}
+    <Comp ref={ref} className={classes} disabled={disabled || loading} {...props}>
+      {content}
     </Comp>
   );
 });
