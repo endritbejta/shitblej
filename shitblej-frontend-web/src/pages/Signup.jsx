@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Eye, EyeOff } from 'lucide-react';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { useAuth } from '../context/AuthContext';
 
@@ -60,7 +60,7 @@ export default function Signup() {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Choose a username" 
                             required
-                            className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all dark:text-white"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 outline-none transition-all dark:text-white"
                         />
                     </div>
                     <div>
@@ -71,7 +71,7 @@ export default function Signup() {
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Enter your email" 
                             required
-                            className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all dark:text-white"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 outline-none transition-all dark:text-white"
                         />
                     </div>
                     <div>
@@ -83,14 +83,14 @@ export default function Signup() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Create a password" 
                                 required
-                                className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all dark:text-white pr-10"
+                                className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 outline-none transition-all dark:text-white pr-10"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                             >
-                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                             </button>
                         </div>
                     </div>

@@ -1,48 +1,33 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Sparkles, User, Gem, Baby, Home, Cpu, Film, Palette, Trophy } from 'lucide-react';
-
-const categories = [
-    { name: 'Ladies', slug: 'ladies', icon: <Sparkles size={18} /> },
-    { name: 'Men', slug: 'men', icon: <User size={18} /> },
-    { name: 'Designer Items', slug: 'designer-items', icon: <Gem size={18} /> },
-    { name: 'Children', slug: 'children', icon: <Baby size={18} /> },
-    { name: 'Home', slug: 'home', icon: <Home size={18} /> },
-    { name: 'Electronics', slug: 'electronics', icon: <Cpu size={18} /> },
-    { name: 'Entertainment', slug: 'entertainment', icon: <Film size={18} /> },
-    { name: 'Hobby & Collector Items', slug: 'hobby-collector', icon: <Palette size={18} /> },
-    { name: 'Sport', slug: 'sport', icon: <Trophy size={18} /> },
-];
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
+import { CATEGORIES } from "../../constants";
 
 const HeaderDrawerCategories = ({ setHeaderDrawerOpen }) => {
-    return (
-        <div className="w-full flex-1 md:min-w-full h-full">
-            <h2 className="text-gray-600 px-4 dark:text-gray-300 font-semibold mb-4">
-                Categories
-            </h2>
+  return (
+    <div className="w-full">
+      <h2 className="mb-2 px-5 text-xs font-semibold uppercase tracking-widest text-gray-400">
+        Categories
+      </h2>
 
-            <ul className="md:flex md:flex-wrap overflow-x-auto border-y-[1px] border-gray-300 dark:border-gray-500">
-                {categories.map((cat, index) => (
-                    <Link
-                        to={`/collections/${cat.slug}`}
-                        key={index}
-                        className="flex items-center gap-3 py-4 px-4 border-b first:border-t md:first:border-t-0 last:border-b-0 
-                                   cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 
-                                   md:border-0 text-sm font-medium text-gray-600 dark:text-gray-300 
-                                   hover:text-green-500 transition-colors"
-                        onClick={() => setHeaderDrawerOpen(false)}
-                    >
-                        <span className="text-gray-700 dark:text-gray-200">
-                            {cat.icon}
-                        </span>
-                        <span className="text-gray-700 dark:text-gray-200">
-                            {cat.name}
-                        </span>
-                    </Link>
-                ))}
-            </ul>
-        </div>
-    );
+      <ul>
+        {CATEGORIES.map((cat) => (
+          <li key={cat.id}>
+            <Link
+              to={`/collections/${cat.id}`}
+              onClick={() => setHeaderDrawerOpen(false)}
+              className="flex items-center gap-3 px-5 py-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-200 dark:hover:bg-zinc-900 dark:hover:text-brand-400"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300">
+                <cat.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              </span>
+              <span className="flex-1">{cat.label}</span>
+              <ChevronRight className="h-4 w-4 text-gray-300 dark:text-zinc-600" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default HeaderDrawerCategories;

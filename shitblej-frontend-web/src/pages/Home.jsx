@@ -1,46 +1,106 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getProducts } from "../api/products";
-import Collection from "../components/collections/Collection";
-import HeroBanner from "../components/home/HeroBanner";
+import Hero from "../components/home/Hero";
+import CategoryStrip from "../components/home/CategoryStrip";
+import ProductRail from "../components/home/ProductRail";
+import FeaturedCollections from "../components/home/FeaturedCollections";
+import ValueProps from "../components/home/ValueProps";
+import SellCta from "../components/home/SellCta";
+import SectionHeader from "../components/ui/SectionHeader";
+import ProductGrid from "../components/ui/ProductGrid";
 
 export default function Home() {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                // Fetch the first 10 products
-                const data = await getProducts({ limit: 10 });
-                setProducts(data);
-            } catch (err) {
-                console.error(err);
-                setError("Failed to load products.");
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await getProducts({ limit: 30, sort: "-createdAt" });
+        if (!cancelled) setProducts(data);
+      } catch {
+        if (!cancelled) setProducts([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-        fetchProducts();
-    }, []);
+  // Derive the rails from a single fetch to keep the homepage to one request.
+  const { trending, recent, luxury } = useMemo(() => {
+    const byPrice = [...products].sort((a, b) => b.price - a.price);
+    return {
+      trending: products.slice(0, 10),
+      recent: products.slice(0, 10),
+      luxury: byPrice.filter((p) => p.price >= 150).slice(0, 10),
+    };
+  }, [products]);
 
-    if (loading) return <div className="p-4">Loading products…</div>;
-    if (error) return <div className="p-4 text-red-500">{error}</div>;
-    if (!products.length) return <div className="p-4">No products found.</div>;
+  return (
+    <div className="-mt-6 space-y-16 pb-4 sm:space-y-20">
+      <Hero />
 
-    return (
-        <div className="pb-20">
-            {/* Hero Banner - full width on desktop, breaks out of main container padding */}
-            <div className="-mx-4 -mt-6 mb-8">
-                <HeroBanner />
-            </div>
-            
-            <div className="max-w-7xl mx-auto py-8">
-                {/* Render the Collection component with first 10 products */}
-                <Collection title="Top products" products={products} />
-            </div>
-        </div>
-    );
+      <section className="space-y-5">
+        <SectionHeader
+          title="Browse by category"
+          subtitle="Find exactly what you’re looking for."
+        />
+        <CategoryStrip />
+      </section>
+
+      <ProductRail
+        eyebrow="Hot right now"
+        title="Trending now"
+        subtitle="What everyone’s watching this week."
+        products={trending}
+        loading={loading}
+        actionLabel="View all"
+        actionTo="/collections/hobby-collector"
+      />
+
+      <section className="space-y-5">
+        <SectionHeader
+          eyebrow="Curated"
+          title="Featured collections"
+          subtitle="Hand-picked edits, refreshed regularly."
+        />
+        <FeaturedCollections />
+      </section>
+
+      <section className="space-y-5">
+        <SectionHeader
+          title="Recently added"
+          subtitle="Fresh listings from sellers near you."
+          actionLabel="View all"
+          actionTo="/collections/electronics"
+        />
+        <ProductGrid products={recent} loading={loading} skeletonCount={10} />
+      </section>
+
+      {(loading || luxury.length > 0) && (
+        <ProductRail
+          eyebrow="Luxury"
+          title="Editor’s luxury picks"
+          subtitle="Premium pieces worth the splurge."
+          products={luxury}
+          loading={loading}
+        />
+      )}
+
+      <section className="space-y-6">
+        <SectionHeader
+          title="Why shop on Shitblej"
+          subtitle="A marketplace built on trust."
+        />
+        <ValueProps />
+      </section>
+
+      <SellCta />
+    </div>
+  );
 }

@@ -1,21 +1,93 @@
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
-@tailwind base;
 
-.button--primary {
-  @apply bg-green-400 text-white font-bold py-2 px-4 rounded text-center;
+@layer base {
+  html {
+    /* Follow the OS colour scheme for native form controls. */
+    color-scheme: light dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+    @apply dark:bg-black dark:text-white;
+  }
+
+  /* One focus system for the whole app.
+     Never rely on the default browser outline; provide our own. */
+  :focus {
+    outline: none;
+  }
+
+  /* Interactive controls: a subtle, keyboard-only ring with an offset. */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    @apply ring-2 ring-brand-500/40 ring-offset-2 ring-offset-white dark:ring-offset-black;
+  }
+
+  /* Form fields: a soft inline ring that hugs the field, no offset. */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply border-brand-500/60 ring-2 ring-brand-500/20;
+  }
+
+  ::selection {
+    @apply bg-brand-500/25;
+  }
 }
 
-.button--secondary {
-  @apply bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded text-center;
+@layer components {
+  /* Shared surface + interaction primitives used across the design system. */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium
+           bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-gray-200 dark:bg-zinc-800;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
 }
 
-/* Custom Swiper Pagination Styles */
+@layer utilities {
+  /* Hide scrollbars on horizontal rails while keeping scroll functional. */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Break an element out of its container to span the full viewport width. */
+  .full-bleed {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+  }
+}
+
+/* ── Swiper pagination (PDP gallery) ───────────────────────────── */
 .product-detail-swiper .swiper-pagination {
   bottom: 40px !important;
   z-index: 10;
 }
-
 .product-detail-swiper .swiper-pagination-bullet {
   width: 8px;
   height: 8px;
@@ -23,25 +95,23 @@
   opacity: 1;
   transition: all 0.3s ease;
 }
-
 .product-detail-swiper .swiper-pagination-bullet-active {
   background: #22c55e;
   width: 24px;
   border-radius: 4px;
 }
 
-
-.animation--slide-up {
-  animation: slide-up 0.5s ease-in-out forwards;
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+  .skeleton::after {
+    animation: none;
   }
 }

@@ -18,6 +18,7 @@ connectDB();
 const products = require("./routes/products");
 const users = require("./routes/users");
 const messages = require("./routes/messages");
+const savedItems = require("./routes/savedItems");
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(morgan("dev"));
 app.use("/api/v1/products", products);
 app.use("/api/v1/users", users);
 app.use("/api/v1/messages", messages);
+app.use("/api/v1/saved-items", savedItems);
 
 // Error handler
 app.use(errorHandler);

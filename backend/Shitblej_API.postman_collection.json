@@ -25,8 +25,15 @@
 						},
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/users/register",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "users", "register"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
 						}
 					}
 				},
@@ -46,8 +53,15 @@
 						},
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/users/login",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "users", "login"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"login"
+							]
 						}
 					}
 				},
@@ -63,8 +77,15 @@
 						],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/users/me",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "users", "me"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"me"
+							]
 						}
 					}
 				}
@@ -80,8 +101,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/products",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "products"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
 						}
 					}
 				},
@@ -92,8 +119,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/products/:id",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "products", ":id"],
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -123,8 +157,14 @@
 						},
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/products",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "products"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
 						}
 					}
 				},
@@ -148,8 +188,15 @@
 						},
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/products/:id",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "products", ":id"],
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -171,12 +218,139 @@
 						],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/products/:id",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "products", ":id"],
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
 									"value": "PRODUCT_ID_HERE"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Saved Items",
+			"item": [
+				{
+					"name": "Get Saved Items",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/saved-items",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"saved-items"
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Saved Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"product\": \"PRODUCT_ID_HERE\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/saved-items",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"saved-items"
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Saved Item by Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/saved-items/product/:productId",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"saved-items",
+								"product",
+								":productId"
+							],
+							"variable": [
+								{
+									"key": "productId",
+									"value": "PRODUCT_ID_HERE"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Saved Item",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/saved-items/:id",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"saved-items",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "SAVED_ITEM_ID_HERE"
 								}
 							]
 						}
@@ -207,8 +381,14 @@
 						},
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/messages",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "messages"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"messages"
+							]
 						},
 						"description": "Send a new message between users. Requires authentication."
 					}
@@ -220,8 +400,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/messages/:userId?currentUserId=YOUR_USER_ID",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "messages", ":userId"],
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"messages",
+								":userId"
+							],
 							"query": [
 								{
 									"key": "currentUserId",
@@ -252,8 +439,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/users",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "users"]
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
 						}
 					}
 				},
@@ -264,8 +457,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/users/:id",
-							"host": ["{{BASE_URL}}"],
-							"path": ["api", "v1", "users", ":id"],
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",

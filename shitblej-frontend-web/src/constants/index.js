@@ -1,14 +1,27 @@
-// Product Categories
+import {
+    Sparkles,
+    User,
+    Gem,
+    Baby,
+    Home,
+    Cpu,
+    Film,
+    Palette,
+    Trophy,
+} from 'lucide-react';
+
+// Product Categories. `icon` is a lucide component (single icon family across
+// the app); `children` powers the header mega-menu.
 export const CATEGORIES = [
-    { id: 'ladies', label: 'Ladies', icon: '👗' },
-    { id: 'men', label: 'Men', icon: '👔' },
-    { id: 'designer-items', label: 'Designer Items', icon: '💎' },
-    { id: 'children', label: 'Children', icon: '👶' },
-    { id: 'home', label: 'Home', icon: '🏠' },
-    { id: 'electronics', label: 'Electronics', icon: '📱' },
-    { id: 'entertainment', label: 'Entertainment', icon: '🎬' },
-    { id: 'hobby-collector', label: 'Hobby & Collector Items', icon: '🎨' },
-    { id: 'sport', label: 'Sport', icon: '⚽' },
+    { id: 'ladies', label: 'Ladies', icon: Sparkles, children: ['Dresses', 'Tops', 'Shoes', 'Bags', 'Accessories'] },
+    { id: 'men', label: 'Men', icon: User, children: ['Shirts', 'Jackets', 'Shoes', 'Watches', 'Accessories'] },
+    { id: 'designer-items', label: 'Designer Items', icon: Gem, children: ['Handbags', 'Sunglasses', 'Jewelry', 'Shoes', 'Watches'] },
+    { id: 'children', label: 'Children', icon: Baby, children: ['Toys', 'Clothing', 'Strollers', 'Shoes', 'Books'] },
+    { id: 'home', label: 'Home', icon: Home, children: ['Furniture', 'Decor', 'Kitchen', 'Lighting', 'Textiles'] },
+    { id: 'electronics', label: 'Electronics', icon: Cpu, children: ['Phones', 'Laptops', 'Audio', 'Cameras', 'Gaming'] },
+    { id: 'entertainment', label: 'Entertainment', icon: Film, children: ['Instruments', 'Vinyl', 'Books', 'Movies', 'Games'] },
+    { id: 'hobby-collector', label: 'Hobby & Collector Items', icon: Palette, children: ['Vintage', 'Models', 'Coins', 'Art', 'Trading Cards'] },
+    { id: 'sport', label: 'Sport', icon: Trophy, children: ['Bikes', 'Fitness', 'Outdoor', 'Team Sports', 'Winter'] },
 ];
 
 // Product Conditions
@@ -118,6 +131,46 @@ export const LOCATIONS = [
     'Vushtrri',
     'Podujeva',
     'Other',
+];
+
+// Trending search terms surfaced in the search overlay.
+export const TRENDING_SEARCHES = [
+    'Vintage camera',
+    'Designer bags',
+    'Sneakers',
+    'PlayStation',
+    'Denim jacket',
+    'LEGO',
+    'Road bike',
+    'Vinyl records',
+];
+
+// Curated collections used on the homepage and search overlay.
+export const FEATURED_COLLECTIONS = [
+    {
+        id: 'designer-items',
+        title: 'Designer Edit',
+        subtitle: 'Authenticated luxury',
+        image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+        id: 'electronics',
+        title: 'Tech & Gadgets',
+        subtitle: 'Phones, consoles, audio',
+        image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+        id: 'hobby-collector',
+        title: "Collector's Corner",
+        subtitle: 'Rare & vintage finds',
+        image: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+        id: 'sport',
+        title: 'Sport & Outdoor',
+        subtitle: 'Gear that moves',
+        image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop',
+    },
 ];
 
 // App Configuration

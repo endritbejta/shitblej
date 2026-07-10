@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const geocoder = require("../utils/geocoder");
 const { type } = require("os");
+// Registered so the cascade hook below can reference the SavedItem model.
+require("./SavedItem");
 
 const ProductSchema = new mongoose.Schema({
   name: {
@@ -98,4 +100,12 @@ const ProductSchema = new mongoose.Schema({
 //   this.address = undefined;
 //   next();
 // });
+
+// Cascade: when a product is removed, delete any saved items that reference it
+// so users don't keep dangling bookmarks. Fires on document `product.deleteOne()`.
+ProductSchema.pre("deleteOne", { document: true, query: false }, async function (next) {
+  await mongoose.model("SavedItem").deleteMany({ product: this._id });
+  next();
+});
+
 module.exports = mongoose.model("Product", ProductSchema);
