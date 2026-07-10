@@ -1,17 +1,16 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
 const colors = require("colors");
-const dotenv = require("dotenv");
 
-// load env vars
-dotenv.config({ path: "./config/config.env" });
+// load + validate env vars from the single source of truth
+const config = require("./config");
 
 // Load models
 const Product = require("./models/Product");
 const User = require("./models/User");
 
 // connect to db
-mongoose.connect(process.env.MONGO_URI, {});
+mongoose.connect(config.db.uri, {});
 
 // read JSON files
 const products = JSON.parse(

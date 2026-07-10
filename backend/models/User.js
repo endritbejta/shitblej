@@ -19,7 +19,11 @@ const UserSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      // sparse: only enforce uniqueness for documents that HAVE a phone —
+      // without it, the second user registering without a phone collides on
+      // `phone: null` and registration breaks.
       unique: true,
+      sparse: true,
       match: [/^\+383\d{8,9}$/, "Please enter a valid Kosovo phone number"],
     },
     password: {
