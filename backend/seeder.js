@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const colors = require("colors");
 
 // load + validate env vars from the single source of truth
-const config = require("./config");
+const config = require("./src/config");
 
 // Load models
-const Product = require("./models/Product");
-const User = require("./models/User");
+const Product = require("./src/modules/products/product.model");
+const User = require("./src/modules/users/user.model");
 
 // connect to db
 mongoose.connect(config.db.uri, {});
