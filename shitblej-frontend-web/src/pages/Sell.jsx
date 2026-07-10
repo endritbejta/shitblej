@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../api/products";
-import { FaCamera, FaTimes, FaCheckCircle, FaMapMarkerAlt, FaDollarSign, FaTag, FaAlignLeft } from "react-icons/fa";
+import { Camera, X, CheckCircle2, MapPin, DollarSign, AlignLeft } from "lucide-react";
 
 export default function Sell() {
     const navigate = useNavigate();
@@ -145,7 +145,7 @@ export default function Sell() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-4" />
+                    <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         Product Listed Successfully!
                     </h2>
@@ -172,7 +172,7 @@ export default function Sell() {
                 {/* Image Upload Section */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <FaCamera className="text-green-500" />
+                        <Camera className="h-5 w-5 text-green-500" />
                         Photos
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -188,7 +188,7 @@ export default function Sell() {
                                     onClick={() => removeImage(index)}
                                     className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
-                                    <FaTimes />
+                                    <X className="h-3.5 w-3.5" />
                                 </button>
                                 {index === 0 && (
                                     <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
@@ -200,7 +200,7 @@ export default function Sell() {
 
                         {images.length < 10 && (
                             <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-green-500 dark:hover:border-green-500 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 bg-gray-50 dark:bg-zinc-800/50">
-                                <FaCamera className="text-2xl text-gray-400" />
+                                <Camera className="h-6 w-6 text-gray-400" />
                                 <span className="text-xs text-gray-500 dark:text-gray-400">Add Photo</span>
                                 <input
                                     type="file"
@@ -217,7 +217,7 @@ export default function Sell() {
                 {/* Product Details */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <FaAlignLeft className="text-green-500" />
+                        <AlignLeft className="h-5 w-5 text-green-500" />
                         Product Details
                     </h2>
 
@@ -232,7 +232,7 @@ export default function Sell() {
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 placeholder="e.g., iPhone 13 Pro Max"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                 required
                             />
                         </div>
@@ -247,7 +247,7 @@ export default function Sell() {
                                 onChange={handleInputChange}
                                 placeholder="Describe your item in detail..."
                                 rows={4}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white resize-none"
                                 required
                             />
                         </div>
@@ -261,7 +261,7 @@ export default function Sell() {
                                     name="category"
                                     value={formData.category}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                     required
                                 >
                                     <option value="">Select a category</option>
@@ -279,7 +279,7 @@ export default function Sell() {
                                     name="condition"
                                     value={formData.condition}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                     required
                                 >
                                     {conditions.map(cond => (
@@ -300,7 +300,7 @@ export default function Sell() {
                                     value={formData.brand}
                                     onChange={handleInputChange}
                                     placeholder="e.g., Apple"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                 />
                             </div>
 
@@ -314,7 +314,7 @@ export default function Sell() {
                                     value={formData.color}
                                     onChange={handleInputChange}
                                     placeholder="e.g., Space Gray"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                 />
                             </div>
 
@@ -328,7 +328,7 @@ export default function Sell() {
                                     value={formData.size}
                                     onChange={handleInputChange}
                                     placeholder="e.g., M, 42, One Size"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -338,7 +338,7 @@ export default function Sell() {
                 {/* Pricing & Location */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <FaDollarSign className="text-green-500" />
+                        <DollarSign className="h-5 w-5 text-green-500" />
                         Pricing & Location
                     </h2>
 
@@ -355,14 +355,14 @@ export default function Sell() {
                                 placeholder="0.00"
                                 step="0.01"
                                 min="0"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                                 required
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1">
-                                <FaMapMarkerAlt className="text-sm" />
+                                <MapPin className="h-4 w-4" />
                                 Location
                             </label>
                             <input
@@ -371,7 +371,7 @@ export default function Sell() {
                                 value={formData.location}
                                 onChange={handleInputChange}
                                 placeholder="City, Country"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                             />
                         </div>
                     </div>

@@ -23,10 +23,7 @@ export async function getProducts(options = {}) {
     if (options.priceMax) params["price[lte]"] = options.priceMax;
     if (options.user) params.user = options.user;
 
-    console.log("Fetching products with params:", params);
-
     const { data } = await client.get("/products", { params });
-    console.log("Fetched products:", data.data);
     return data.data || [];
 }
 

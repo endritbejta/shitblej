@@ -1,4 +1,4 @@
-import { FaTimes } from "react-icons/fa";
+import { X } from "lucide-react";
 
 export default function OfferModal({ isOpen, onClose, product, images, offerAmount, setOfferAmount, offerMessage, setOfferMessage, onSubmit, isLoading }) {
     if (!isOpen) return null;
@@ -9,7 +9,7 @@ export default function OfferModal({ isOpen, onClose, product, images, offerAmou
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Make an Offer</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <FaTimes className="text-xl" />
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
                 
@@ -31,7 +31,7 @@ export default function OfferModal({ isOpen, onClose, product, images, offerAmou
                             value={offerAmount}
                             onChange={(e) => setOfferAmount(e.target.value)}
                             placeholder={`Max: ${product.price}`}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                         />
                     </div>
 
@@ -44,7 +44,7 @@ export default function OfferModal({ isOpen, onClose, product, images, offerAmou
                             onChange={(e) => setOfferMessage(e.target.value)}
                             placeholder="Add any details about your offer..."
                             rows={3}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-gray-900 dark:text-white resize-none"
                         />
                     </div>
 

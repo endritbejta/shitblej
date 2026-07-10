@@ -1,108 +1,124 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPaperPlane } from 'react-icons/fa';
-import { useTranslation } from 'react-i18next';
+import { Link } from "react-router-dom";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import Container from "../components/ui/Container";
+import LanguageSwitcher from "../components/LanguageSwitcher";
+import { CATEGORIES } from "../constants";
 
 const Footer = () => {
-    const { t } = useTranslation();
-    return (
-        <footer className="bg-gray-100 dark:bg-zinc-900 pt-16 pb-8 border-t border-gray-200 dark:border-zinc-800 transition-colors duration-300">
-            <div className="max-w-6xl mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {/* Brand Section */}
-                    <div className="space-y-4">
-                        <Link to="/" className="text-2xl font-bold text-green-500 tracking-tighter">
-                            SHITBLEJ
-                        </Link>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                            {t('footer.tagline')}
-                        </p>
-                        <div className="flex gap-4 pt-2">
-                            <SocialLink href="#" icon={<FaFacebook />} />
-                            <SocialLink href="#" icon={<FaTwitter />} />
-                            <SocialLink href="#" icon={<FaInstagram />} />
-                            <SocialLink href="#" icon={<FaLinkedin />} />
-                        </div>
-                    </div>
+  const { t } = useTranslation();
 
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold mb-4">{t('footer.quick_links')}</h3>
-                        <ul className="space-y-2">
-                            <FooterLink to="/" text={t('footer.home')} />
-                            <FooterLink to="/sell" text={t('footer.sell_item')} />
-                            <FooterLink to="/login" text={t('footer.login')} />
-                        </ul>
-                    </div>
-
-                    {/* Support */}
-                    <div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold mb-4">{t('footer.support')}</h3>
-                        <ul className="space-y-2">
-                            <FooterLink to="#" text={t('footer.help_center')} />
-                            <FooterLink to="#" text={t('footer.terms_of_service')} />
-                            <FooterLink to="#" text={t('footer.privacy_policy')} />
-                            <FooterLink to="#" text={t('footer.cookie_policy')} />
-                        </ul>
-                    </div>
-
-                    {/* Newsletter */}
-                    <div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold mb-4">{t('footer.stay_connected')}</h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                            {t('footer.newsletter_text')}
-                        </p>
-                        <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-                            <input
-                                type="email"
-                                placeholder={t('footer.email_placeholder')}
-                                className="flex-1 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
-                            />
-                            <button
-                                type="submit"
-                                className="w-10 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors duration-200"
-                                aria-label="Subscribe"
-                            >
-                                <FaPaperPlane className="text-sm" />
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                {/* Bottom Bar */}
-                <div className="pt-8 border-t border-gray-200 dark:border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-gray-500 dark:text-gray-500 text-sm">
-                        &copy; {new Date().getFullYear()} Shitblej. {t('footer.all_rights_reserved')}
-                    </p>
-                    <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-500">
-                        <Link to="#" className="hover:text-green-500 transition-colors">{t('footer.privacy')}</Link>
-                        <Link to="#" className="hover:text-green-500 transition-colors">{t('footer.terms')}</Link>
-                        <Link to="#" className="hover:text-green-500 transition-colors">{t('footer.sitemap')}</Link>
-                    </div>
-                </div>
+  return (
+    <footer className="border-t border-gray-200 bg-gray-50 pt-16 pb-8 dark:border-zinc-900 dark:bg-zinc-950">
+      <Container>
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
+          {/* Brand */}
+          <div className="col-span-2 lg:col-span-2">
+            <Link to="/" className="text-2xl font-extrabold tracking-tighter text-brand-500">
+              SHITBLEJ
+            </Link>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+              {t("footer.tagline")}
+            </p>
+            <div className="mt-5 flex gap-2.5">
+              <SocialLink href="#" icon={<FaFacebook />} label="Facebook" />
+              <SocialLink href="#" icon={<FaTwitter />} label="Twitter" />
+              <SocialLink href="#" icon={<FaInstagram />} label="Instagram" />
+              <SocialLink href="#" icon={<FaLinkedin />} label="LinkedIn" />
             </div>
-        </footer>
-    );
+          </div>
+
+          {/* Categories */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+              Shop
+            </h3>
+            <ul className="space-y-2.5">
+              {CATEGORIES.slice(0, 5).map((c) => (
+                <FooterLink key={c.id} to={`/collections/${c.id}`} text={c.label} />
+              ))}
+            </ul>
+          </div>
+
+          {/* Quick links */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+              {t("footer.quick_links")}
+            </h3>
+            <ul className="space-y-2.5">
+              <FooterLink to="/sell" text={t("footer.sell_item")} />
+              <FooterLink to="/login" text={t("footer.login")} />
+              <FooterLink to="#" text={t("footer.help_center")} />
+              <FooterLink to="#" text={t("footer.terms_of_service")} />
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div className="col-span-2 lg:col-span-1">
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+              {t("footer.stay_connected")}
+            </h3>
+            <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+              {t("footer.newsletter_text")}
+            </p>
+            <form
+              className="flex items-center gap-2 rounded-full border border-gray-300 bg-white p-1 pl-4 focus-within:border-brand-500 dark:border-zinc-700 dark:bg-zinc-900"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input
+                type="email"
+                placeholder={t("footer.email_placeholder")}
+                className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none dark:text-white"
+              />
+              <button
+                type="submit"
+                aria-label="Subscribe"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-500 text-white transition-colors hover:bg-brand-600"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-8 dark:border-zinc-800 sm:flex-row">
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            &copy; {new Date().getFullYear()} Shitblej. {t("footer.all_rights_reserved")}
+          </p>
+          <div className="flex items-center gap-6">
+            <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-500">
+              <Link to="#" className="transition-colors hover:text-brand-500">{t("footer.privacy")}</Link>
+              <Link to="#" className="transition-colors hover:text-brand-500">{t("footer.terms")}</Link>
+            </div>
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </Container>
+    </footer>
+  );
 };
 
-const SocialLink = ({ href, icon }) => (
-    <a
-        href={href}
-        className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-green-500 hover:text-white dark:hover:bg-green-500 dark:hover:text-white transition-all duration-300"
-    >
-        {icon}
-    </a>
+const SocialLink = ({ href, icon, label }) => (
+  <a
+    href={href}
+    aria-label={label}
+    className="grid h-9 w-9 place-items-center rounded-full bg-gray-200 text-gray-600 transition-all duration-250 hover:bg-brand-500 hover:text-white dark:bg-zinc-800 dark:text-gray-400"
+  >
+    {icon}
+  </a>
 );
 
 const FooterLink = ({ to, text }) => (
-    <li>
-        <Link
-            to={to}
-            className="text-gray-600 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 text-sm transition-colors duration-200"
-        >
-            {text}
-        </Link>
-    </li>
+  <li>
+    <Link
+      to={to}
+      className="text-sm text-gray-500 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+    >
+      {text}
+    </Link>
+  </li>
 );
 
 export default Footer;

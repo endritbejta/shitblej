@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FaStar, FaShieldAlt, FaRegHeart } from "react-icons/fa";
+import { Star, ShieldCheck, MessageCircle } from "lucide-react";
 
 export default function SellerCard({ seller, isMobile = false }) {
     if (isMobile) {
@@ -9,13 +9,13 @@ export default function SellerCard({ seller, isMobile = false }) {
                     <img src={seller.image} alt={seller.name} className="w-10 h-10 rounded-full object-cover" />
                     <div>
                         <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{seller.name}</h3>
-                        <div className="flex items-center gap-1 text-xs text-yellow-500">
-                            <FaStar /> {seller.rating}
+                        <div className="flex items-center gap-1 text-xs text-amber-500">
+                            <Star className="h-3 w-3 fill-current" /> {seller.rating}
                         </div>
                     </div>
                 </div>
-                <Link to="/inbox" className="p-2 bg-white dark:bg-zinc-700 rounded-full shadow-sm text-green-600 dark:text-green-400">
-                    <FaRegHeart />
+                <Link to="/inbox" className="p-2 bg-white dark:bg-zinc-700 rounded-full shadow-sm text-brand-600 dark:text-brand-400">
+                    <MessageCircle className="h-4 w-4" />
                 </Link>
             </div>
         );
@@ -31,15 +31,15 @@ export default function SellerCard({ seller, isMobile = false }) {
                         className="w-12 h-12 rounded-full object-cover"
                     />
                     {seller.verified && (
-                        <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white p-0.5 rounded-full border-2 border-white dark:border-zinc-900 text-[10px]">
-                            <FaShieldAlt />
+                        <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white p-0.5 rounded-full border-2 border-white dark:border-zinc-900">
+                            <ShieldCheck className="h-2.5 w-2.5" />
                         </div>
                     )}
                 </div>
                 <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">{seller.name}</h3>
-                    <div className="flex items-center gap-1 text-xs text-yellow-500">
-                        <FaStar />
+                    <div className="flex items-center gap-1 text-xs text-amber-500">
+                        <Star className="h-3 w-3 fill-current" />
                         <span className="font-medium text-gray-700 dark:text-gray-300">{seller.rating}</span>
                         <span className="text-gray-400">({seller.reviews} reviews)</span>
                     </div>
