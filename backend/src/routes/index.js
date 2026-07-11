@@ -7,5 +7,8 @@ router.use("/products", require("../modules/products/product.routes"));
 router.use("/users", require("../modules/users/user.routes"));
 router.use("/messages", require("../modules/messages/message.routes"));
 router.use("/saved-items", require("../modules/savedItems/savedItem.routes"));
+router.use("/orders", require("../modules/orders/order.routes"));
+router.use("/offers", require("../modules/offers/offer.routes"));
+router.use("/notifications", require("../modules/notifications/notification.routes"));
 
 module.exports = router;

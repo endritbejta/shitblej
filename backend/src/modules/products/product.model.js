@@ -2,6 +2,16 @@ const mongoose = require("mongoose");
 // Registered so the cascade hook below can reference the SavedItem model.
 require("../savedItems/savedItem.model");
 
+// Availability lifecycle of a unique second-hand item. Transitions are owned
+// exclusively by product.inventory.js - nothing else may write this field.
+//   available -> reserved (an active order claims the item)
+//   reserved  -> available (order declined/cancelled) | sold (order delivered)
+const PRODUCT_STATUS = Object.freeze({
+  AVAILABLE: "available",
+  RESERVED: "reserved",
+  SOLD: "sold",
+});
+
 const ProductSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -60,6 +70,12 @@ const ProductSchema = new mongoose.Schema({
     ref: "User",
     required: false,
   },
+  status: {
+    type: String,
+    enum: Object.values(PRODUCT_STATUS),
+    default: PRODUCT_STATUS.AVAILABLE,
+    index: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -73,4 +89,7 @@ ProductSchema.pre("deleteOne", { document: true, query: false }, async function 
   next();
 });
 
-module.exports = mongoose.model("Product", ProductSchema);
+const Product = mongoose.model("Product", ProductSchema);
+Product.PRODUCT_STATUS = PRODUCT_STATUS;
+
+module.exports = Product;
