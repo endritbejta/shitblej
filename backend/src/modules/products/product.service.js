@@ -1,6 +1,8 @@
 const Product = require("./product.model");
 const ErrorResponse = require("../../shared/utils/errorResponse");
 const { parsePagination, buildPageLinks } = require("../../shared/utils/paginate");
+const domainEvents = require("../../shared/events/domainEvents");
+const { PRODUCT_EVENTS } = require("./product.events");
 
 // Fields that are not part of the filter but control the shape of the query.
 const RESERVED_QUERY_FIELDS = ["select", "sort", "limit", "page"];
@@ -131,8 +133,8 @@ exports.deleteProduct = async ({ id, user }) => {
     );
   }
 
-  // A reserved product is claimed by an active order; deleting it would
-  // orphan that order. The order must be resolved (delivered/cancelled) first.
+  // A reserved product is claimed by an accepted agreement or active order;
+  // deleting it would orphan that commitment. Resolve the order first.
   if (product.status === Product.PRODUCT_STATUS.RESERVED) {
     throw new ErrorResponse(
       "This product is part of an active order and cannot be deleted",
@@ -141,6 +143,12 @@ exports.deleteProduct = async ({ id, user }) => {
   }
 
   await product.deleteOne();
+
+  // Downstream domains react (e.g. offers cancels live negotiations).
+  domainEvents.publish(PRODUCT_EVENTS.DELETED, {
+    productId: String(product._id),
+    sellerId: product.user ? String(product.user) : undefined,
+  });
 };
 
 // @desc Keyword search across name / description / category.

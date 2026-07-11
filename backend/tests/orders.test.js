@@ -1,25 +1,22 @@
 const request = require("supertest");
 const app = require("../src/app");
 const db = require("./helpers/db");
-const { createUser, createProduct } = require("./helpers/factories");
+const {
+  createUser,
+  createProduct,
+  negotiateToAccepted,
+  checkoutOrder,
+  ADDRESS,
+} = require("./helpers/factories");
 const Product = require("../src/modules/products/product.model");
-const domainEvents = require("../src/shared/events/domainEvents");
-const { ORDER_EVENTS } = require("../src/modules/orders/order.constants");
+const Offer = require("../src/modules/offers/offer.model");
+const Notification = require("../src/modules/notifications/notification.model");
 
 beforeAll(() => db.connect());
 afterEach(() => db.clear());
 afterAll(() => db.disconnect());
 
-const ADDRESS = {
-  fullName: "Test Buyer",
-  street: "Rr. Nena Tereze 1",
-  city: "Fushe Kosove",
-  postalCode: "12000",
-  phone: "+38344123456",
-};
-
-// Standard fixture: a seller with one available product and a buyer.
-const setupParties = async (productOverrides = {}) => {
+const setup = async (productOverrides = {}) => {
   const seller = await createUser();
   const buyer = await createUser();
   const product = await createProduct({
@@ -30,11 +27,11 @@ const setupParties = async (productOverrides = {}) => {
   return { seller, buyer, product };
 };
 
-const placeOrder = ({ buyer, items, overrides = {} }) =>
+const checkout = ({ actor, body }) =>
   request(app)
     .post("/api/v1/orders")
-    .set("Authorization", `Bearer ${buyer.token}`)
-    .send({ items, shippingAddress: ADDRESS, ...overrides });
+    .set("Authorization", `Bearer ${actor.token}`)
+    .send(body);
 
 const act = ({ actor, orderId, action, body = {} }) =>
   request(app)
@@ -42,92 +39,102 @@ const act = ({ actor, orderId, action, body = {} }) =>
     .set("Authorization", `Bearer ${actor.token}`)
     .send(body);
 
-describe("POST /api/v1/orders (placement)", () => {
-  it("places an order: snapshots items, prices in cents, reserves the product", async () => {
-    const { buyer, product } = await setupParties();
+describe("POST /api/v1/orders (checkout)", () => {
+  it("turns an accepted offer into an order at the AGREED price", async () => {
+    const { seller, buyer, product } = await setup();
+    const offer = await negotiateToAccepted({
+      buyer,
+      seller,
+      product,
+      type: "offer",
+      amountCents: 2000, // negotiated below the 2550 asking price
+    });
 
-    const placed = new Promise((resolve) =>
-      domainEvents.once(ORDER_EVENTS.PLACED, resolve)
-    );
-    const res = await placeOrder({ buyer, items: [product._id.toString()] });
+    const res = await checkout({
+      actor: buyer,
+      body: { offer: offer._id, shippingAddress: ADDRESS },
+    });
 
     expect(res.status).toBe(201);
     const order = res.body.data;
     expect(order.orderNumber).toMatch(/^ORD-/);
-    expect(order.status).toBe("pending");
+    expect(order.status).toBe("accepted");
+    expect(order.sourceOffer).toBe(offer._id);
     expect(order.items).toHaveLength(1);
-    expect(order.items[0].name).toBe(product.name);
-    expect(order.items[0].unitPriceCents).toBe(2550);
-    expect(order.subtotalCents).toBe(2550);
-    expect(order.totalCents).toBe(2550);
-    expect(order.currency).toBe("EUR");
-    expect(order.statusHistory).toHaveLength(1);
+    expect(order.items[0].unitPriceCents).toBe(2000);
+    expect(order.subtotalCents).toBe(2000);
+    expect(order.totalCents).toBe(2000);
+    expect(order.feeCents).toBe(0);
+    expect(order.sellerNetCents).toBe(2000);
 
-    const reserved = await Product.findById(product._id);
-    expect(reserved.status).toBe("reserved");
+    // The offer is consumed and linked to the order
+    expect(String((await Offer.findById(offer._id)).order)).toBe(order._id);
 
-    const event = await placed;
-    expect(event.orderId).toBe(order._id);
-    expect(event.totalCents).toBe(2550);
+    // The seller is notified the order exists
+    const notif = await Notification.findOne({
+      recipient: seller.user._id,
+      type: "order.created",
+    });
+    expect(notif).not.toBeNull();
   });
 
-  it("rejects ordering your own product and releases the reservation", async () => {
-    const { seller, product } = await setupParties();
-    const res = await placeOrder({
-      buyer: seller,
-      items: [product._id.toString()],
-    });
+  it("the agreed price is immune to listing edits after agreement", async () => {
+    const { seller, buyer, product } = await setup();
+    const offer = await negotiateToAccepted({ buyer, seller, product });
 
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/own products/i);
-    expect((await Product.findById(product._id)).status).toBe("available");
+    // Seller pumps the listing price after agreeing
+    await Product.findByIdAndUpdate(product._id, { price: 999 });
+
+    const order = await checkoutOrder({ buyer, offer });
+    expect(order.totalCents).toBe(2550); // the agreed buy-now price, not 99900
   });
 
-  it("rejects an already-reserved product with 409", async () => {
-    const { buyer, product } = await setupParties();
-    const rival = await createUser();
+  it("rejects checkout without an accepted offer - there is no bypass path", async () => {
+    const { seller, buyer, product } = await setup();
 
-    await placeOrder({ buyer, items: [product._id.toString()] });
-    const res = await placeOrder({
-      buyer: rival,
-      items: [product._id.toString()],
+    // A pending (unaccepted) offer cannot be checked out
+    const pending = await request(app)
+      .post("/api/v1/offers")
+      .set("Authorization", `Bearer ${buyer.token}`)
+      .send({ product: product._id.toString(), type: "buy_now" });
+    const res = await checkout({
+      actor: buyer,
+      body: { offer: pending.body.data._id, shippingAddress: ADDRESS },
     });
-
     expect(res.status).toBe(409);
-    expect(res.body.error).toMatch(/unavailable/i);
-    // The first buyer's reservation is untouched
-    expect((await Product.findById(product._id)).status).toBe("reserved");
+    expect(res.body.error).toMatch(/requires an accepted offer/i);
+
+    // The legacy direct-placement payload no longer exists
+    const direct = await checkout({
+      actor: buyer,
+      body: { items: [product._id.toString()], shippingAddress: ADDRESS },
+    });
+    expect(direct.status).toBe(400);
   });
 
-  it("rejects mixed-seller carts and releases every reservation", async () => {
-    const { buyer, product } = await setupParties();
-    const otherSeller = await createUser();
-    const otherProduct = await createProduct({ userId: otherSeller.user._id });
+  it("only the offer's buyer can check out", async () => {
+    const { seller, buyer, product } = await setup();
+    const offer = await negotiateToAccepted({ buyer, seller, product });
+    const intruder = await createUser();
 
-    const res = await placeOrder({
-      buyer,
-      items: [product._id.toString(), otherProduct._id.toString()],
+    const res = await checkout({
+      actor: intruder,
+      body: { offer: offer._id, shippingAddress: ADDRESS },
     });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/same seller/i);
-    expect((await Product.findById(product._id)).status).toBe("available");
-    expect((await Product.findById(otherProduct._id)).status).toBe("available");
+    expect(res.status).toBe(403);
   });
 
-  it("replays an idempotent retry instead of creating a duplicate", async () => {
-    const { buyer, product } = await setupParties();
-    const overrides = { idempotencyKey: "checkout-abc-123" };
+  it("checkout is idempotent: repeating it returns the same order", async () => {
+    const { seller, buyer, product } = await setup();
+    const offer = await negotiateToAccepted({ buyer, seller, product });
 
-    const first = await placeOrder({
-      buyer,
-      items: [product._id.toString()],
-      overrides,
+    const first = await checkout({
+      actor: buyer,
+      body: { offer: offer._id, shippingAddress: ADDRESS },
     });
-    const retry = await placeOrder({
-      buyer,
-      items: [product._id.toString()],
-      overrides,
+    const retry = await checkout({
+      actor: buyer,
+      body: { offer: offer._id, shippingAddress: ADDRESS },
     });
 
     expect(first.status).toBe(201);
@@ -135,124 +142,55 @@ describe("POST /api/v1/orders (placement)", () => {
     expect(retry.body.data._id).toBe(first.body.data._id);
   });
 
-  it("validates the payload (empty items, missing address)", async () => {
-    const { buyer } = await setupParties();
+  it("an expired checkout window blocks the order and releases the item", async () => {
+    const { seller, buyer, product } = await setup();
+    const offer = await negotiateToAccepted({ buyer, seller, product });
 
-    const empty = await request(app)
-      .post("/api/v1/orders")
-      .set("Authorization", `Bearer ${buyer.token}`)
-      .send({ items: [], shippingAddress: ADDRESS });
-    expect(empty.status).toBe(400);
-
-    const noAddress = await request(app)
-      .post("/api/v1/orders")
-      .set("Authorization", `Bearer ${buyer.token}`)
-      .send({ items: ["000000000000000000000000"] });
-    expect(noAddress.status).toBe(400);
-  });
-
-  it("requires authentication", async () => {
-    const res = await request(app)
-      .post("/api/v1/orders")
-      .send({ items: ["000000000000000000000000"], shippingAddress: ADDRESS });
-    expect(res.status).toBe(401);
-  });
-});
-
-describe("GET /api/v1/orders/:id (access control)", () => {
-  it("is visible to buyer and seller, hidden from strangers", async () => {
-    const { seller, buyer, product } = await setupParties();
-    const stranger = await createUser();
-    const { body } = await placeOrder({
-      buyer,
-      items: [product._id.toString()],
+    await Offer.findByIdAndUpdate(offer._id, {
+      checkoutExpiresAt: new Date(Date.now() - 1000),
     });
-    const url = `/api/v1/orders/${body.data._id}`;
 
-    const asBuyer = await request(app)
-      .get(url)
-      .set("Authorization", `Bearer ${buyer.token}`);
-    const asSeller = await request(app)
-      .get(url)
-      .set("Authorization", `Bearer ${seller.token}`);
-    const asStranger = await request(app)
-      .get(url)
-      .set("Authorization", `Bearer ${stranger.token}`);
-
-    expect(asBuyer.status).toBe(200);
-    expect(asSeller.status).toBe(200);
-    expect(asStranger.status).toBe(403);
+    const res = await checkout({
+      actor: buyer,
+      body: { offer: offer._id, shippingAddress: ADDRESS },
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/expired/i);
+    expect((await Product.findById(product._id)).status).toBe("available");
+    expect((await Offer.findById(offer._id)).status).toBe("expired");
   });
 });
 
-describe("order lifecycle transitions", () => {
-  const placedOrder = async () => {
-    const parties = await setupParties();
-    const res = await placeOrder({
+describe("order lifecycle (post-agreement)", () => {
+  const liveOrder = async () => {
+    const parties = await setup();
+    const offer = await negotiateToAccepted({
       buyer: parties.buyer,
-      items: [parties.product._id.toString()],
+      seller: parties.seller,
+      product: parties.product,
     });
-    return { ...parties, orderId: res.body.data._id };
+    const order = await checkoutOrder({ buyer: parties.buyer, offer });
+    return { ...parties, orderId: order._id };
   };
 
-  it("seller accepts a pending order", async () => {
-    const { seller, orderId } = await placedOrder();
+  it("there is no accept/decline stage anymore - consent already happened", async () => {
+    const { seller, orderId } = await liveOrder();
     const res = await act({ actor: seller, orderId, action: "accept" });
-
-    expect(res.status).toBe(200);
-    expect(res.body.data.status).toBe("accepted");
-    expect(res.body.data.statusHistory).toHaveLength(2);
+    expect(res.status).toBe(404); // route does not exist
   });
 
-  it("buyer cannot accept (party-based authorization)", async () => {
-    const { buyer, orderId } = await placedOrder();
-    const res = await act({ actor: buyer, orderId, action: "accept" });
-    expect(res.status).toBe(403);
-  });
-
-  it("cannot ship an order that is still pending (illegal transition)", async () => {
-    const { seller, orderId } = await placedOrder();
-    const res = await act({ actor: seller, orderId, action: "ship" });
-    expect(res.status).toBe(409);
-  });
-
-  it("declining releases the product back to available", async () => {
-    const { seller, orderId, product } = await placedOrder();
-    const res = await act({
-      actor: seller,
-      orderId,
-      action: "decline",
-      body: { note: "Item damaged in storage" },
-    });
-
-    expect(res.status).toBe(200);
-    expect(res.body.data.status).toBe("declined");
-    expect((await Product.findById(product._id)).status).toBe("available");
-  });
-
-  it("buyer can cancel while pending; product is released", async () => {
-    const { buyer, orderId, product } = await placedOrder();
+  it("cancel before shipment releases the item, either party", async () => {
+    const { buyer, orderId, product } = await liveOrder();
     const res = await act({ actor: buyer, orderId, action: "cancel" });
 
     expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe("cancelled");
     expect((await Product.findById(product._id)).status).toBe("available");
   });
 
-  it("buyer cannot cancel after acceptance, seller can", async () => {
-    const { seller, buyer, orderId } = await placedOrder();
-    await act({ actor: seller, orderId, action: "accept" });
+  it("happy path: ship -> deliver settles cash, sells the item, notifies both ways", async () => {
+    const { seller, buyer, orderId, product } = await liveOrder();
 
-    const buyerCancel = await act({ actor: buyer, orderId, action: "cancel" });
-    expect(buyerCancel.status).toBe(409);
-
-    const sellerCancel = await act({ actor: seller, orderId, action: "cancel" });
-    expect(sellerCancel.status).toBe(200);
-  });
-
-  it("full happy path: accept -> ship -> deliver settles cash and sells the item", async () => {
-    const { seller, buyer, orderId, product } = await placedOrder();
-
-    await act({ actor: seller, orderId, action: "accept" });
     const shipped = await act({
       actor: seller,
       orderId,
@@ -262,34 +200,63 @@ describe("order lifecycle transitions", () => {
     expect(shipped.status).toBe(200);
     expect(shipped.body.data.shipment.trackingNumber).toBe("PK123456");
 
+    // Buyer got a shipment notification
+    const shipNotif = await Notification.findOne({
+      recipient: buyer.user._id,
+      type: "order.shipped",
+    });
+    expect(shipNotif).not.toBeNull();
+
     // Only the buyer confirms receipt
-    const sellerDeliver = await act({ actor: seller, orderId, action: "deliver" });
-    expect(sellerDeliver.status).toBe(403);
+    expect((await act({ actor: seller, orderId, action: "deliver" })).status).toBe(403);
 
     const delivered = await act({ actor: buyer, orderId, action: "deliver" });
     expect(delivered.status).toBe(200);
     expect(delivered.body.data.status).toBe("delivered");
     expect(delivered.body.data.paymentStatus).toBe("paid");
-    expect(delivered.body.data.statusHistory).toHaveLength(4);
     expect((await Product.findById(product._id)).status).toBe("sold");
+
+    const deliveredNotif = await Notification.findOne({
+      recipient: seller.user._id,
+      type: "order.delivered",
+    });
+    expect(deliveredNotif).not.toBeNull();
   });
 
-  it("delivered is terminal: no further actions succeed", async () => {
-    const { seller, buyer, orderId } = await placedOrder();
-    await act({ actor: seller, orderId, action: "accept" });
-    await act({ actor: seller, orderId, action: "ship" });
-    await act({ actor: buyer, orderId, action: "deliver" });
+  it("illegal transitions are rejected; delivered is terminal", async () => {
+    const { seller, buyer, orderId } = await liveOrder();
 
-    const res = await act({ actor: seller, orderId, action: "cancel" });
-    expect(res.status).toBe(409);
+    // Cannot deliver before shipping
+    expect((await act({ actor: buyer, orderId, action: "deliver" })).status).toBe(409);
+
+    await act({ actor: seller, orderId, action: "ship" });
+
+    // Buyer cannot cancel after shipment
+    expect((await act({ actor: buyer, orderId, action: "cancel" })).status).toBe(409);
+
+    await act({ actor: buyer, orderId, action: "deliver" });
+    expect((await act({ actor: seller, orderId, action: "cancel" })).status).toBe(409);
+  });
+
+  it("strangers cannot see or act on the order", async () => {
+    const { orderId } = await liveOrder();
+    const stranger = await createUser();
+
+    const view = await request(app)
+      .get(`/api/v1/orders/${orderId}`)
+      .set("Authorization", `Bearer ${stranger.token}`);
+    expect(view.status).toBe(403);
+
+    const action = await act({ actor: stranger, orderId, action: "cancel" });
+    expect(action.status).toBe(403);
   });
 });
 
 describe("GET /api/v1/orders/purchases and /sales", () => {
   it("splits views by role and supports status filtering", async () => {
-    const { seller, buyer, product } = await setupParties();
-    const res = await placeOrder({ buyer, items: [product._id.toString()] });
-    await act({ actor: seller, orderId: res.body.data._id, action: "accept" });
+    const { seller, buyer, product } = await setup();
+    const offer = await negotiateToAccepted({ buyer, seller, product });
+    await checkoutOrder({ buyer, offer });
 
     const purchases = await request(app)
       .get("/api/v1/orders/purchases")
@@ -301,29 +268,17 @@ describe("GET /api/v1/orders/purchases and /sales", () => {
       .set("Authorization", `Bearer ${seller.token}`);
     expect(sales.body.count).toBe(1);
 
-    // The buyer sold nothing
-    const buyerSales = await request(app)
-      .get("/api/v1/orders/sales")
+    const cancelled = await request(app)
+      .get("/api/v1/orders/purchases?status=cancelled")
       .set("Authorization", `Bearer ${buyer.token}`);
-    expect(buyerSales.body.count).toBe(0);
-
-    // Status filter
-    const pendingOnly = await request(app)
-      .get("/api/v1/orders/purchases?status=pending")
-      .set("Authorization", `Bearer ${buyer.token}`);
-    expect(pendingOnly.body.count).toBe(0);
-
-    const acceptedOnly = await request(app)
-      .get("/api/v1/orders/purchases?status=accepted")
-      .set("Authorization", `Bearer ${buyer.token}`);
-    expect(acceptedOnly.body.count).toBe(1);
+    expect(cancelled.body.count).toBe(0);
   });
 });
 
 describe("product integration", () => {
-  it("a reserved product cannot be deleted by its seller", async () => {
-    const { seller, buyer, product } = await setupParties();
-    await placeOrder({ buyer, items: [product._id.toString()] });
+  it("a reserved product cannot be deleted while the agreement is live", async () => {
+    const { seller, buyer, product } = await setup();
+    await negotiateToAccepted({ buyer, seller, product });
 
     const res = await request(app)
       .delete(`/api/v1/products/${product._id}`)

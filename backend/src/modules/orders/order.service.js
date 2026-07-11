@@ -1,6 +1,9 @@
 const Order = require("./order.model");
 const pricing = require("./order.pricing");
 const inventory = require("../products/product.inventory");
+const Product = require("../products/product.model");
+const offerService = require("../offers/offer.service");
+const Offer = require("../offers/offer.model");
 const ErrorResponse = require("../../shared/utils/errorResponse");
 const domainEvents = require("../../shared/events/domainEvents");
 const {
@@ -16,18 +19,17 @@ const {
   PAYMENT_METHOD,
   PAYMENT_STATUS,
 } = require("./order.constants");
+const { OFFER_STATUS } = require("../offers/offer.constants");
 
 const PARTY_POPULATE = [
   { path: "buyer", select: "name image" },
   { path: "seller", select: "name image" },
 ];
 
-// Extract a stable id string from a field that may or may not be populated
-// (a raw ObjectId or a populated User document).
+// Extract a stable id string from a field that may or may not be populated.
 const idOf = (ref) => String(ref && ref._id ? ref._id : ref);
 
 // Resolve the role a user plays on a given order, or null for strangers.
-// Global admins act as the ADMIN party on any order.
 const resolveParty = (order, user) => {
   if (user.role === "admin") return ORDER_PARTY.ADMIN;
   if (idOf(order.buyer) === user.id) return ORDER_PARTY.BUYER;
@@ -35,7 +37,7 @@ const resolveParty = (order, user) => {
   return null;
 };
 
-const emitOrderEvent = (eventName, order) => {
+const emitOrderEvent = (eventName, order, recipientId) => {
   domainEvents.publish(eventName, {
     orderId: order._id.toString(),
     orderNumber: order.orderNumber,
@@ -44,112 +46,105 @@ const emitOrderEvent = (eventName, order) => {
     status: order.status,
     totalCents: order.totalCents,
     currency: order.currency,
+    recipientId: String(recipientId),
   });
 };
 
-// @desc Place an order: atomically reserve every item, price it server-side,
-// and persist the contract between buyer and seller.
-//
-// Failure handling is compensating: any step after reservation that fails
-// releases the reserved items before rethrowing, so a failed placement never
-// leaves products stuck in "reserved".
-exports.placeOrder = async ({
-  buyer,
-  productIds,
-  shippingAddress,
-  note,
-  idempotencyKey,
-}) => {
-  // Idempotent replay: same buyer + key returns the original order without
-  // touching inventory again.
-  if (idempotencyKey) {
-    const existing = await Order.findOne({
-      buyer: buyer.id,
-      idempotencyKey,
-    }).populate(PARTY_POPULATE);
+// @desc Checkout: turn an accepted offer into an order. This is the ONLY way
+// an order comes into existence - the offer IS the agreement, the product was
+// reserved when the offer was accepted, and the price is the agreed amount.
+exports.checkout = async ({ buyer, offerId, shippingAddress, note }) => {
+  const offer = await Offer.findById(offerId);
+  if (!offer) {
+    throw new ErrorResponse(`Offer not found with id of ${offerId}`, 404);
+  }
+  if (String(offer.buyer) !== buyer.id) {
+    throw new ErrorResponse("Only the buyer of this offer can check out", 403);
+  }
+
+  // Idempotent replay: this offer already produced an order.
+  if (offer.order) {
+    const existing = await Order.findById(offer.order).populate(PARTY_POPULATE);
     if (existing) return { order: existing, replayed: true };
   }
 
-  const { reserved, failedIds } = await inventory.reserveProducts(productIds);
-  if (failedIds.length > 0) {
-    // A concurrent retry with the same idempotency key may lose the
-    // reservation race to its own sibling request - replay, don't fail.
-    if (idempotencyKey) {
-      const existing = await Order.findOne({
-        buyer: buyer.id,
-        idempotencyKey,
-      }).populate(PARTY_POPULATE);
-      if (existing) return { order: existing, replayed: true };
-    }
+  if (offer.status !== OFFER_STATUS.ACCEPTED) {
     throw new ErrorResponse(
-      `These products are unavailable or no longer exist: ${failedIds.join(", ")}`,
+      `Checkout requires an accepted offer (this one is ${offer.status})`,
       409
     );
   }
 
-  const releaseAndThrow = async (err) => {
-    await inventory.releaseProducts(reserved.map((p) => p._id));
-    throw err;
-  };
-
-  // Domain invariants that require the product documents.
-  if (reserved.some((p) => !p.user)) {
-    return releaseAndThrow(
-      new ErrorResponse("These products cannot be ordered (no seller)", 409)
+  // Lazy checkout-window expiry: release the item if the agreement went stale.
+  if (offer.checkoutExpiresAt && offer.checkoutExpiresAt <= new Date()) {
+    const expired = await Offer.findOneAndUpdate(
+      { _id: offer._id, status: OFFER_STATUS.ACCEPTED, order: { $exists: false } },
+      { $set: { status: OFFER_STATUS.EXPIRED } },
+      { new: true }
     );
-  }
-  const sellerIds = new Set(reserved.map((p) => String(p.user)));
-  if (sellerIds.size > 1) {
-    return releaseAndThrow(
-      new ErrorResponse(
-        "All items in an order must belong to the same seller. Place one order per seller.",
-        400
-      )
-    );
-  }
-  const [sellerId] = sellerIds;
-  if (sellerId === buyer.id) {
-    return releaseAndThrow(
-      new ErrorResponse("You cannot order your own products", 400)
+    if (expired) await inventory.releaseProducts([offer.product]);
+    throw new ErrorResponse(
+      "The checkout window for this agreement has expired",
+      409
     );
   }
 
+  // The product document supplies the snapshot; the offer supplies the price.
+  const product = await Product.findById(offer.product);
+  if (!product) {
+    throw new ErrorResponse(
+      "The product for this agreement no longer exists",
+      409
+    );
+  }
+
+  let order;
   try {
-    const order = await Order.create({
+    order = await Order.create({
+      sourceOffer: offer._id,
       buyer: buyer.id,
-      seller: sellerId,
-      ...pricing.quote(reserved),
+      seller: offer.seller,
+      ...pricing.quoteFromAgreement({
+        product,
+        agreedAmountCents: offer.amountCents,
+      }),
       shippingAddress,
       note,
-      idempotencyKey,
       paymentMethod: PAYMENT_METHOD.CASH,
       statusHistory: [
         {
-          status: ORDER_STATUS.PENDING,
+          status: ORDER_STATUS.ACCEPTED,
           by: buyer.id,
           party: ORDER_PARTY.BUYER,
         },
       ],
     });
-
-    await order.populate(PARTY_POPULATE);
-    emitOrderEvent(ORDER_EVENTS.PLACED, order);
-    return { order, replayed: false };
   } catch (err) {
-    // Duplicate idempotency key in a race: the first request won - replay it.
-    if (err.code === 11000 && idempotencyKey) {
-      await inventory.releaseProducts(reserved.map((p) => p._id));
-      const existing = await Order.findOne({
-        buyer: buyer.id,
-        idempotencyKey,
-      }).populate(PARTY_POPULATE);
+    // Concurrent checkout of the same offer: the unique sourceOffer index
+    // guarantees one winner - replay the winner for the loser.
+    if (err.code === 11000) {
+      const existing = await Order.findOne({ sourceOffer: offer._id }).populate(
+        PARTY_POPULATE
+      );
       if (existing) return { order: existing, replayed: true };
     }
-    return releaseAndThrow(err);
+    throw err;
   }
+
+  // Consume the offer (records the order on it). CAS-guarded in the offers
+  // service; a failure here cannot un-create the order, so we do not throw.
+  await offerService.consumeAcceptedOffer({
+    offerId: offer._id,
+    buyerId: buyer.id,
+    orderId: order._id,
+  });
+
+  await order.populate(PARTY_POPULATE);
+  emitOrderEvent(ORDER_EVENTS.PLACED, order, idOf(order.seller));
+  return { order, replayed: false };
 };
 
-// @desc Execute a lifecycle action (accept/decline/cancel/ship/deliver).
+// @desc Execute a lifecycle action (cancel/ship/deliver).
 //
 // Authorization and legality both come from the ORDER_ACTIONS table. The
 // status write is an atomic compare-and-swap on the current status, so two
@@ -172,10 +167,7 @@ exports.performAction = async ({ orderId, action, user, note, shipment }) => {
 
   const allowedFrom = definition.from[party];
   if (!allowedFrom) {
-    throw new ErrorResponse(
-      `The ${party} cannot ${action} an order`,
-      403
-    );
+    throw new ErrorResponse(`The ${party} cannot ${action} an order`, 403);
   }
   if (!allowedFrom.includes(order.status)) {
     throw new ErrorResponse(
@@ -194,7 +186,10 @@ exports.performAction = async ({ orderId, action, user, note, shipment }) => {
     update.$set["shipment.carrier"] = shipment.carrier;
     update.$set["shipment.trackingNumber"] = shipment.trackingNumber;
   }
-  if (definition.effects.settleCash && order.paymentMethod === PAYMENT_METHOD.CASH) {
+  if (
+    definition.effects.settleCash &&
+    order.paymentMethod === PAYMENT_METHOD.CASH
+  ) {
     update.$set.paymentStatus = PAYMENT_STATUS.PAID;
   }
 
@@ -221,12 +216,14 @@ exports.performAction = async ({ orderId, action, user, note, shipment }) => {
     await inventory.markProductsSold(productIds);
   }
 
-  emitOrderEvent(EVENT_BY_ACTION[action], updated);
+  // Notify the counterpart of whoever acted (admin actions notify the buyer).
+  const recipientId =
+    party === ORDER_PARTY.SELLER ? idOf(updated.buyer) : idOf(updated.seller);
+  emitOrderEvent(EVENT_BY_ACTION[action], updated, recipientId);
   return updated;
 };
 
-// Shared implementation for the two list views - identical shape, different
-// party field.
+// Shared implementation for the two list views.
 const listOrdersFor = async (partyField, userId, rawQuery) => {
   const filter = { [partyField]: userId };
   if (rawQuery.status) filter.status = rawQuery.status;

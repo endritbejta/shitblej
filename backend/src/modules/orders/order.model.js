@@ -6,14 +6,13 @@ const {
   PAYMENT_STATUS,
 } = require("./order.constants");
 
-// An order is a contract between exactly one buyer and one seller over a set
-// of unique, quantity-one items. Multi-seller checkouts are composed by the
-// caller as several orders - this keeps fulfilment, cancellation and future
-// payouts unambiguous (money and shipping always involve exactly two parties).
+// An order is the CONTRACT created when an accepted offer is checked out:
+// exactly one buyer, one seller, and the agreed price. It cannot exist
+// without a source offer - agreement precedes every order by construction.
 
 // Item snapshot: products are editable and deletable by their sellers, so the
-// order captures what was actually bought at the moment of purchase. Display
-// and accounting never depend on the product document still existing.
+// order captures what was actually bought. Display and accounting never
+// depend on the product document still existing.
 const OrderItemSchema = new mongoose.Schema(
   {
     product: {
@@ -23,15 +22,13 @@ const OrderItemSchema = new mongoose.Schema(
     },
     name: { type: String, required: true },
     image: { type: String },
-    // Minor units (cents). All money on an order is integer cents - the only
-    // float-to-cents conversion happens at placement time in the service.
+    // Minor units (cents) - the price agreed in the negotiation, not the
+    // listing price at checkout time.
     unitPriceCents: { type: Number, required: true, min: 0 },
   },
   { _id: false }
 );
 
-// Where and to whom the order ships - snapshotted, never a reference to a
-// mutable user profile.
 const ShippingAddressSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true },
@@ -66,16 +63,17 @@ const OrderSchema = new mongoose.Schema(
     // conversations (never leak raw ObjectIds to customers).
     orderNumber: { type: String, unique: true },
 
-    buyer: {
+    // The agreement this order fulfils. Unique: one accepted offer can only
+    // ever produce one order, which also makes checkout naturally idempotent.
+    sourceOffer: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
+      ref: "Offer",
       required: true,
+      unique: true,
     },
-    seller: {
-      type: mongoose.Schema.ObjectId,
-      ref: "User",
-      required: true,
-    },
+
+    buyer: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+    seller: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
 
     items: {
       type: [OrderItemSchema],
@@ -88,12 +86,16 @@ const OrderSchema = new mongoose.Schema(
     currency: { type: String, required: true, default: "EUR" },
     subtotalCents: { type: Number, required: true, min: 0 },
     shippingCents: { type: Number, required: true, min: 0 },
+    // Marketplace take. Rate is 0 today, but payouts and revenue reporting
+    // need these recorded per order from day one - they cannot be backfilled.
+    feeCents: { type: Number, required: true, min: 0, default: 0 },
+    sellerNetCents: { type: Number, required: true, min: 0 },
     totalCents: { type: Number, required: true, min: 0 },
 
     status: {
       type: String,
       enum: Object.values(ORDER_STATUS),
-      default: ORDER_STATUS.PENDING,
+      default: ORDER_STATUS.ACCEPTED,
       index: true,
     },
     statusHistory: [StatusHistoryEntrySchema],
@@ -116,11 +118,6 @@ const OrderSchema = new mongoose.Schema(
     },
 
     note: { type: String, maxlength: 500 },
-
-    // Client-supplied key that makes order placement retry-safe: a network
-    // retry with the same key returns the original order instead of charging
-    // and reserving twice.
-    idempotencyKey: { type: String },
   },
   { timestamps: true }
 );
@@ -130,15 +127,8 @@ const OrderSchema = new mongoose.Schema(
 OrderSchema.index({ buyer: 1, createdAt: -1 });
 OrderSchema.index({ seller: 1, createdAt: -1 });
 
-// Idempotency guard - unique per buyer, only when a key was supplied.
-OrderSchema.index(
-  { buyer: 1, idempotencyKey: 1 },
-  { unique: true, partialFilterExpression: { idempotencyKey: { $type: "string" } } }
-);
-
 // e.g. ORD-MB3K2J-4F7A: time-sortable prefix + random suffix. The unique
-// index is the real collision guard; the random suffix makes collisions
-// practically impossible without a coordination point.
+// index is the real collision guard.
 const generateOrderNumber = () => {
   const time = Date.now().toString(36).toUpperCase();
   const rand = crypto.randomBytes(2).toString("hex").toUpperCase();
