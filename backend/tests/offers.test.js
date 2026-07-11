@@ -125,7 +125,7 @@ describe("negotiation: counter chains", () => {
     const first = (
       await makeOffer({
         actor: buyer,
-        body: { product: product._id.toString(), type: "offer", amountCents: 1500 },
+        body: { product: product._id.toString(), type: "offer", amountCents: 1600 },
       })
     ).body.data;
 
@@ -159,7 +159,7 @@ describe("negotiation: counter chains", () => {
       .get(`/api/v1/offers/${first._id}/negotiation`)
       .set("Authorization", `Bearer ${seller.token}`);
     expect(chain.body.count).toBe(3);
-    expect(chain.body.data.map((o) => o.amountCents)).toEqual([1500, 2200, 1800]);
+    expect(chain.body.data.map((o) => o.amountCents)).toEqual([1600, 2200, 1800]);
 
     // A resolved offer cannot be acted on again
     const reuse = await act({
@@ -175,7 +175,7 @@ describe("negotiation: counter chains", () => {
     const offer = (
       await makeOffer({
         actor: buyer,
-        body: { product: product._id.toString(), type: "offer", amountCents: 1500 },
+        body: { product: product._id.toString(), type: "offer", amountCents: 1600 },
       })
     ).body.data;
 
@@ -198,7 +198,7 @@ describe("negotiation: counter chains", () => {
     const offer = (
       await makeOffer({
         actor: buyer,
-        body: { product: product._id.toString(), type: "offer", amountCents: 1500 },
+        body: { product: product._id.toString(), type: "offer", amountCents: 1600 },
       })
     ).body.data;
 

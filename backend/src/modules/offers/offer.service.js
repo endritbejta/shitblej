@@ -5,7 +5,9 @@ const inventory = require("../products/product.inventory");
 const messageService = require("../messages/message.service");
 const ErrorResponse = require("../../shared/utils/errorResponse");
 const domainEvents = require("../../shared/events/domainEvents");
-const { eurosToCents } = require("../../shared/utils/money");
+const { eurosToCents, centsToEuros } = require("../../shared/utils/money");
+const { offerBounds, isWithinBounds, suggestedAmounts } = require("./offer.rules");
+const { containsContactInfo } = require("../../shared/utils/contactFilter");
 const {
   parsePagination,
   buildPageLinks,
@@ -25,6 +27,26 @@ const PARTY_POPULATE = [
 ];
 
 const idOf = (ref) => String(ref && ref._id ? ref._id : ref);
+
+// Both directions of a negotiation (offers and counters alike) must respect
+// the marketplace amount rules, and offer notes are user text - the contact
+// filter applies to them like any other content.
+const assertValidProposal = ({ amountCents, askingPriceCents, message }) => {
+  if (!isWithinBounds(amountCents, askingPriceCents)) {
+    const { minCents, maxCents } = offerBounds(askingPriceCents);
+    throw new ErrorResponse(
+      `Offers on this product must be between ${centsToEuros(minCents).toFixed(2)} and ${centsToEuros(maxCents).toFixed(2)} EUR`,
+      400,
+      "offer_out_of_bounds"
+    );
+  }
+  if (containsContactInfo(message)) {
+    throw new ErrorResponse(
+      "Offer notes must not contain contact details (phone, email or social handles)",
+      400
+    );
+  }
+};
 
 const resolveParty = (offer, user) => {
   if (idOf(offer.buyer) === user.id) return OFFER_PARTY.BUYER;
@@ -122,13 +144,12 @@ exports.makeOffer = async ({ buyer, productId, type, amountCents, message }) => 
     if (!proposedCents) {
       throw new ErrorResponse("Please provide an offer amount", 400);
     }
-    if (proposedCents > askingPriceCents) {
-      throw new ErrorResponse(
-        "An offer cannot exceed the asking price - use Buy Now instead",
-        400
-      );
-    }
   }
+  assertValidProposal({
+    amountCents: proposedCents,
+    askingPriceCents,
+    message,
+  });
 
   // Friendly guard; the partial unique index is the real protection.
   const active = await Offer.findOne({
@@ -302,9 +323,11 @@ exports.counterOffer = async ({ offerId, user, amountCents, message }) => {
   if (!amountCents) {
     throw new ErrorResponse("Please provide a counter amount", 400);
   }
-  if (amountCents > offer.askingPriceCents) {
-    throw new ErrorResponse("A counter cannot exceed the asking price", 400);
-  }
+  assertValidProposal({
+    amountCents,
+    askingPriceCents: offer.askingPriceCents,
+    message,
+  });
 
   // Close the parent BEFORE inserting the child so the single-active-offer
   // index is never violated. If we crash in between, no proposal is live and
@@ -413,6 +436,46 @@ exports.listOffers = async ({ user, role, rawQuery = {} }) => {
     total,
     pagination: buildPageLinks({ page, limit, skip, total, returned: offers.length }),
   };
+};
+
+// @desc The negotiation envelope for a listing: slider bounds, quick-pick
+// suggestions, and whether this user may open a negotiation at all. The
+// frontend renders ONLY what this returns - the rules live server-side.
+exports.getOfferOptions = async ({ productId, user }) => {
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new ErrorResponse(`Product not found with id of ${productId}`, 404);
+  }
+
+  const askingPriceCents = eurosToCents(product.price);
+  const base = {
+    askingPriceCents,
+    currency: "EUR",
+    ...offerBounds(askingPriceCents),
+    suggestedCents: suggestedAmounts(askingPriceCents),
+  };
+
+  if (String(product.user) === user.id) {
+    return { ...base, canOffer: false, reason: "own_product" };
+  }
+  if (product.status !== inventory.PRODUCT_STATUS.AVAILABLE) {
+    return { ...base, canOffer: false, reason: "product_unavailable" };
+  }
+  const active = await Offer.findOne({
+    product: productId,
+    buyer: user.id,
+    status: OFFER_STATUS.PENDING,
+  }).select("_id");
+  if (active) {
+    return {
+      ...base,
+      canOffer: false,
+      reason: "active_offer_exists",
+      activeOfferId: active._id,
+    };
+  }
+
+  return { ...base, canOffer: true };
 };
 
 // @desc Sweep for a scheduler: expire overdue proposals and release

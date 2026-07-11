@@ -15,6 +15,17 @@ exports.makeOffer = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: offer });
 });
 
+// @desc    Negotiation envelope for a listing: bounds, suggestions, canOffer
+// @route   GET /api/v1/offers/options?product=:id
+// @access  Private
+exports.getOfferOptions = asyncHandler(async (req, res) => {
+  const options = await offerService.getOfferOptions({
+    productId: req.query.product,
+    user: req.user,
+  });
+  res.status(200).json({ success: true, data: options });
+});
+
 // @desc    List my offers (role=buyer by default, role=seller for received)
 // @route   GET /api/v1/offers
 // @access  Private

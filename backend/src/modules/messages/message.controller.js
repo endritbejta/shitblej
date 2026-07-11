@@ -11,6 +11,7 @@ exports.sendMessage = asyncHandler(async (req, res) => {
     sender: req.user.id,
     receiver: req.body.receiver,
     text: req.body.text,
+    senderRole: req.user.role,
   });
 
   res.status(201).json({ success: true, data: message });
