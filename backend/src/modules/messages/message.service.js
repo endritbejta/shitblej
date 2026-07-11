@@ -2,6 +2,8 @@ const Message = require("./message.model");
 const ErrorResponse = require("../../shared/utils/errorResponse");
 const domainEvents = require("../../shared/events/domainEvents");
 const { centsToEuros } = require("../../shared/utils/money");
+const { canSendText } = require("./message.policy");
+const { containsContactInfo } = require("../../shared/utils/contactFilter");
 
 const DEFAULT_AVATAR = "https://via.placeholder.com/150";
 
@@ -20,11 +22,35 @@ const emitCreated = (message) => {
 };
 
 // @desc Persist a plain text message. Shared by the REST controller and the
-// socket handler so the write path lives in exactly one place.
-exports.createMessage = async ({ sender, receiver, text }) => {
+// socket handler so the write path - and therefore the messaging policy -
+// lives in exactly one place.
+exports.createMessage = async ({ sender, receiver, text, senderRole }) => {
   if (!sender || !receiver || !text) {
     throw new ErrorResponse("sender, receiver, and text are required", 400);
   }
+
+  // Free text requires a live agreement between the pair; negotiation itself
+  // happens through offer actions, which enter the thread as offer cards.
+  const policy = await canSendText({
+    senderId: sender,
+    receiverId: receiver,
+    senderRole,
+  });
+  if (!policy.allowed) {
+    throw new ErrorResponse(
+      "Messaging unlocks after an accepted offer. Make an offer to start negotiating.",
+      403,
+      policy.reason
+    );
+  }
+
+  if (containsContactInfo(text)) {
+    throw new ErrorResponse(
+      "Messages must not contain contact details (phone, email or social handles)",
+      400
+    );
+  }
+
   const message = await Message.create({ sender, receiver, text });
   emitCreated(message);
   return message;

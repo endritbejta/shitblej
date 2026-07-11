@@ -1,15 +1,18 @@
 const express = require("express");
 const router = express.Router();
+const { z } = require("zod");
 const {
   makeOffer,
   listOffers,
   getOffer,
+  getOfferOptions,
   getNegotiation,
   acceptOffer,
   declineOffer,
   counterOffer,
   cancelOffer,
 } = require("./offer.controller");
+const { objectId } = require("../../shared/validators/common");
 const { protect } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
 const {
@@ -26,6 +29,15 @@ router.use(protect);
 // @route   GET  /api/v1/offers?role=buyer|seller&status=...
 router.post("/", validate(makeOfferSchema), makeOffer);
 router.get("/", validate(listOffersSchema), listOffers);
+
+// Negotiation envelope for the offer UI (slider bounds, quick picks).
+// Declared before "/:id" so "options" is not captured as an id.
+// @route   GET /api/v1/offers/options?product=:id
+router.get(
+  "/options",
+  validate({ query: z.object({ product: objectId("product") }) }),
+  getOfferOptions
+);
 
 // @route   GET /api/v1/offers/:id
 // @route   GET /api/v1/offers/:id/negotiation
