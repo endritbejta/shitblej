@@ -47,13 +47,3 @@ export async function updateUserProfile(userId, formData) {
     const { data } = await client.put(`/users/${userId}`, formData);
     return data.data; // Backend returns { success: true, data: updatedUser }
 }
-
-export async function loginWithGoogle() {
-    console.log("Initiating Google Login...");
-    return new Promise(resolve => setTimeout(() => resolve({ success: true, provider: 'google' }), 1000));
-}
-
-export async function loginWithApple() {
-    console.log("Initiating Apple Login...");
-    return new Promise(resolve => setTimeout(() => resolve({ success: true, provider: 'apple' }), 1000));
-}

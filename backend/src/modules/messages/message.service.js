@@ -1,15 +1,92 @@
 const Message = require("./message.model");
 const ErrorResponse = require("../../shared/utils/errorResponse");
+const domainEvents = require("../../shared/events/domainEvents");
+const { centsToEuros } = require("../../shared/utils/money");
+const { canSendText } = require("./message.policy");
+const { containsContactInfo } = require("../../shared/utils/contactFilter");
 
 const DEFAULT_AVATAR = "https://via.placeholder.com/150";
 
-// @desc Persist a message. Shared by the REST controller and the socket
-// handler so the write path lives in exactly one place.
-exports.createMessage = async ({ sender, receiver, text }) => {
+// Emitted after a message is persisted; the socket layer relays it to the
+// receiver in real time regardless of whether it arrived via REST, websocket
+// or an offer action.
+const MESSAGE_EVENTS = Object.freeze({ CREATED: "messages.created" });
+
+const emitCreated = (message) => {
+  domainEvents.publish(MESSAGE_EVENTS.CREATED, {
+    messageId: message._id.toString(),
+    senderId: String(message.sender._id || message.sender),
+    receiverId: String(message.receiver._id || message.receiver),
+    message: message.toObject ? message.toObject() : message,
+  });
+};
+
+// @desc Persist a plain text message. Shared by the REST controller and the
+// socket handler so the write path - and therefore the messaging policy -
+// lives in exactly one place.
+exports.createMessage = async ({ sender, receiver, text, senderRole }) => {
   if (!sender || !receiver || !text) {
     throw new ErrorResponse("sender, receiver, and text are required", 400);
   }
-  return Message.create({ sender, receiver, text });
+
+  // Free text requires a live agreement between the pair; negotiation itself
+  // happens through offer actions, which enter the thread as offer cards.
+  const policy = await canSendText({
+    senderId: sender,
+    receiverId: receiver,
+    senderRole,
+  });
+  if (!policy.allowed) {
+    throw new ErrorResponse(
+      "Messaging unlocks after an accepted offer. Make an offer to start negotiating.",
+      403,
+      policy.reason
+    );
+  }
+
+  if (containsContactInfo(text)) {
+    throw new ErrorResponse(
+      "Messages must not contain contact details (phone, email or social handles)",
+      400
+    );
+  }
+
+  const message = await Message.create({ sender, receiver, text });
+  emitCreated(message);
+  return message;
+};
+
+// Human-readable fallback line for an offer card, also used as the
+// conversation-list preview.
+const offerFallbackText = (offer) => {
+  const amount = `${centsToEuros(offer.amountCents).toFixed(2)} ${offer.currency}`;
+  const name = offer.productName;
+  switch (offer.status) {
+    case "accepted":
+      return `Offer accepted: ${amount} for ${name}`;
+    case "declined":
+      return `Offer declined: ${amount} for ${name}`;
+    case "cancelled":
+      return `Offer withdrawn: ${amount} for ${name}`;
+    default:
+      return offer.previousOffer
+        ? `Counter offer: ${amount} for ${name}`
+        : `Offer: ${amount} for ${name}`;
+  }
+};
+
+// @desc Drop a negotiation step into the conversation as an offer card.
+// Called by the offers service on every lifecycle action.
+exports.createOfferMessage = async ({ sender, receiver, offer }) => {
+  const message = await Message.create({
+    sender,
+    receiver,
+    type: Message.MESSAGE_TYPE.OFFER,
+    offer: offer._id,
+    text: offerFallbackText(offer),
+  });
+  emitCreated(message);
+  return message;
 };
 
 // @desc Build the conversation list for a user: one entry per partner with the
@@ -46,11 +123,17 @@ exports.getConversations = async (userId) => {
 };
 
 // @desc Get the full message thread between two users, oldest-first.
+// Offer messages carry the current state of their offer so the client can
+// render live cards (with accept/decline/counter buttons on the active one).
 exports.getConversationBetween = async ({ userA, userB }) => {
   return Message.find({
     $or: [
       { sender: userA, receiver: userB },
       { sender: userB, receiver: userA },
     ],
-  }).sort({ createdAt: 1 });
+  })
+    .sort({ createdAt: 1 })
+    .populate("offer");
 };
+
+exports.MESSAGE_EVENTS = MESSAGE_EVENTS;
