@@ -131,6 +131,15 @@ exports.deleteProduct = async ({ id, user }) => {
     );
   }
 
+  // A reserved product is claimed by an active order; deleting it would
+  // orphan that order. The order must be resolved (delivered/cancelled) first.
+  if (product.status === Product.PRODUCT_STATUS.RESERVED) {
+    throw new ErrorResponse(
+      "This product is part of an active order and cannot be deleted",
+      409
+    );
+  }
+
   await product.deleteOne();
 };
 
