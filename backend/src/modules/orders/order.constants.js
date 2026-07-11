@@ -1,24 +1,20 @@
 // Single source of truth for the order lifecycle.
 //
-// The state machine below drives the service (transition execution), the
-// routes (one endpoint per action), and the tests. Adding a future capability
-// (returns, disputes, refunds) means adding a status + an action entry here -
-// no scattered if-statements to hunt down.
+// An order comes into existence ONLY at checkout of an accepted offer - the
+// mutual agreement already happened in the offers domain, so there is no
+// pending/accept/decline stage here. The state machine below drives the
+// service (transition execution), the routes (one endpoint per action) and
+// the tests.
 //
-// Lifecycle:
+//   ACCEPTED ---ship---> SHIPPED ---deliver---> DELIVERED
+//       \-----cancel (buyer or seller)-----> CANCELLED
 //
-//   PENDING ---accept--->  ACCEPTED ---ship--->  SHIPPED ---deliver---> DELIVERED
-//     |  \--decline--> DECLINED         \--cancel(seller)--> CANCELLED
-//     \---cancel(buyer)--> CANCELLED
-//
-// DELIVERED, DECLINED and CANCELLED are terminal.
+// DELIVERED and CANCELLED are terminal.
 
 const ORDER_STATUS = Object.freeze({
-  PENDING: "pending",
   ACCEPTED: "accepted",
   SHIPPED: "shipped",
   DELIVERED: "delivered",
-  DECLINED: "declined",
   CANCELLED: "cancelled",
 });
 
@@ -31,9 +27,8 @@ const ORDER_PARTY = Object.freeze({
 
 const PAYMENT_METHOD = Object.freeze({
   CASH: "cash",
-  // Extension point: CARD: "card" once a payment provider is integrated.
-  // Provider-specific state (intents, charges) belongs in a payments module,
-  // not on the order - the order only tracks method + settlement status.
+  // Extension point: CARD once a payment provider is integrated. Provider
+  // state (intents, charges) belongs in a payments module, not on the order.
 });
 
 const PAYMENT_STATUS = Object.freeze({
@@ -44,30 +39,18 @@ const PAYMENT_STATUS = Object.freeze({
 
 // Transition table. For each action:
 //   from    - map of party -> statuses from which THAT party may perform it
-//             (admin can act wherever any party can, plus its own entries)
 //   to      - resulting status
 //   effects - declarative side effects executed by the service:
-//     releaseItems  - reserved products return to "available"
-//     sellItems     - reserved products become "sold"
-//     settleCash    - cash-on-delivery is considered collected
+//     releaseItems - reserved products return to "available"
+//     sellItems    - reserved products become "sold"
+//     settleCash   - cash-on-delivery is considered collected
 const ORDER_ACTIONS = Object.freeze({
-  accept: {
-    from: { seller: [ORDER_STATUS.PENDING], admin: [ORDER_STATUS.PENDING] },
-    to: ORDER_STATUS.ACCEPTED,
-    effects: {},
-  },
-  decline: {
-    from: { seller: [ORDER_STATUS.PENDING], admin: [ORDER_STATUS.PENDING] },
-    to: ORDER_STATUS.DECLINED,
-    effects: { releaseItems: true },
-  },
   cancel: {
-    // A buyer may back out while the seller has not committed; a seller may
-    // cancel after accepting when they can no longer fulfil.
+    // Before shipment either side may back out; the item goes back on sale.
     from: {
-      buyer: [ORDER_STATUS.PENDING],
+      buyer: [ORDER_STATUS.ACCEPTED],
       seller: [ORDER_STATUS.ACCEPTED],
-      admin: [ORDER_STATUS.PENDING, ORDER_STATUS.ACCEPTED],
+      admin: [ORDER_STATUS.ACCEPTED, ORDER_STATUS.SHIPPED],
     },
     to: ORDER_STATUS.CANCELLED,
     effects: { releaseItems: true },
@@ -86,26 +69,20 @@ const ORDER_ACTIONS = Object.freeze({
   },
 });
 
-// Domain events emitted after each successful state change.
+// Domain events emitted after each successful state change. Payloads carry
+// recipientId - the party who should be notified (the one who did not act).
 const ORDER_EVENTS = Object.freeze({
   PLACED: "orders.placed",
-  ACCEPTED: "orders.accepted",
-  DECLINED: "orders.declined",
   CANCELLED: "orders.cancelled",
   SHIPPED: "orders.shipped",
   DELIVERED: "orders.delivered",
 });
 
-// Event emitted for each action (placement emits PLACED separately).
 const EVENT_BY_ACTION = Object.freeze({
-  accept: ORDER_EVENTS.ACCEPTED,
-  decline: ORDER_EVENTS.DECLINED,
   cancel: ORDER_EVENTS.CANCELLED,
   ship: ORDER_EVENTS.SHIPPED,
   deliver: ORDER_EVENTS.DELIVERED,
 });
-
-const MAX_ITEMS_PER_ORDER = 20;
 
 module.exports = {
   ORDER_STATUS,
@@ -115,5 +92,4 @@ module.exports = {
   ORDER_ACTIONS,
   ORDER_EVENTS,
   EVENT_BY_ACTION,
-  MAX_ITEMS_PER_ORDER,
 };

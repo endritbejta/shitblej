@@ -6,6 +6,11 @@ const config = require("./config");
 const errorHandler = require("./middleware/error");
 const apiRoutes = require("./routes");
 
+// Cross-module event subscribers. Registered at app build so every entry
+// point (server, tests, future workers) gets consistent domain behavior.
+require("./modules/notifications/notification.subscribers").register();
+require("./modules/offers/offer.subscribers").register();
+
 // Build and return the Express application. Kept free of any `listen()` call so
 // it can be imported directly by tests (Supertest) without opening a port.
 const app = express();

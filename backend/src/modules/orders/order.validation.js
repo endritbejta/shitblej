@@ -1,6 +1,6 @@
 const { z } = require("zod");
 const { objectId } = require("../../shared/validators/common");
-const { ORDER_STATUS, MAX_ITEMS_PER_ORDER } = require("./order.constants");
+const { ORDER_STATUS } = require("./order.constants");
 
 const shippingAddress = z
   .object({
@@ -15,21 +15,15 @@ const shippingAddress = z
 
 const note = z.string().trim().max(500).optional();
 
-exports.placeOrderSchema = {
+// Checkout is deliberately lightweight: the agreement (offer) fixes the
+// product and the price; the buyer supplies only delivery details.
+// Amounts are intentionally NOT accepted - pricing is server-side only.
+exports.checkoutSchema = {
   body: z
     .object({
-      // Item ids are deduplicated rather than rejected: double-tapping "buy"
-      // in a UI cart should not fail the whole checkout.
-      items: z
-        .array(objectId("item"))
-        .min(1, "An order must contain at least one item")
-        .max(MAX_ITEMS_PER_ORDER)
-        .transform((ids) => [...new Set(ids)]),
+      offer: objectId("offer"),
       shippingAddress,
       note,
-      // Optional client-generated key that makes placement retry-safe.
-      idempotencyKey: z.string().trim().min(8).max(128).optional(),
-      // Amounts are intentionally NOT accepted - pricing is server-side only.
     })
     .strip(),
 };

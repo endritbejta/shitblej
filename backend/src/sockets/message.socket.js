@@ -40,14 +40,16 @@ const registerMessageSocket = (io) => {
     socket.on("sendMessage", async (data = {}) => {
       try {
         // Trust the authenticated identity for `sender`, never the payload.
+        // Delivery to the receiver happens via the realtime relay (which
+        // listens for messages.created), so REST-sent and offer-generated
+        // messages arrive the same way; here we only echo back to the sender
+        // for confirmation / optimistic UI.
         const message = await messageService.createMessage({
           sender: socket.userId,
           receiver: data.receiver,
           text: data.text,
         });
 
-        io.to(String(data.receiver)).emit("message", message);
-        // Echo back to the sender for confirmation / optimistic UI.
         socket.emit("message", message);
       } catch (err) {
         socket.emit("messageError", {

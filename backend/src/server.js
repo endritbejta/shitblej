@@ -6,6 +6,7 @@ const config = require("./config");
 const connectDB = require("./config/db");
 const app = require("./app");
 const registerMessageSocket = require("./sockets/message.socket");
+const registerRealtimeSubscribers = require("./sockets/realtime.subscribers");
 
 // Connect to the database
 connectDB();
@@ -24,6 +25,7 @@ const io = new Server(server, {
   },
 });
 registerMessageSocket(io);
+registerRealtimeSubscribers(io);
 
 server.listen(config.port, () =>
   console.log(

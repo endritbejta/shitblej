@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const {
-  placeOrder,
+  checkout,
   listPurchases,
   listSales,
   getOrder,
-  acceptOrder,
-  declineOrder,
   cancelOrder,
   shipOrder,
   deliverOrder,
@@ -14,7 +12,7 @@ const {
 const { protect } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
 const {
-  placeOrderSchema,
+  checkoutSchema,
   orderIdParamSchema,
   actionSchema,
   shipSchema,
@@ -25,8 +23,10 @@ const {
 // (buyer vs seller vs admin) is enforced in the service via the state machine.
 router.use(protect);
 
+// Checkout: the ONLY way an order is created, and it requires an accepted
+// offer. There is no direct "place order" endpoint by design.
 // @route   POST /api/v1/orders
-router.post("/", validate(placeOrderSchema), placeOrder);
+router.post("/", validate(checkoutSchema), checkout);
 
 // Named list views - declared before "/:id" so they are not captured as ids.
 // @route   GET /api/v1/orders/purchases
@@ -37,16 +37,11 @@ router.get("/sales", validate(listOrdersSchema), listSales);
 // @route   GET /api/v1/orders/:id
 router.get("/:id", validate(orderIdParamSchema), getOrder);
 
-// Lifecycle actions as explicit endpoints (not a generic PATCH status): each
-// is independently discoverable, documentable and rate-limitable, while the
-// shared state machine keeps them consistent.
-// @route   POST /api/v1/orders/:id/accept   (seller)
-// @route   POST /api/v1/orders/:id/decline  (seller)
-// @route   POST /api/v1/orders/:id/cancel   (buyer: pending, seller: accepted)
+// Lifecycle actions. Accept/decline no longer exist here - consent happens in
+// the offers domain before the order can exist.
+// @route   POST /api/v1/orders/:id/cancel   (buyer or seller, before shipment)
 // @route   POST /api/v1/orders/:id/ship     (seller)
 // @route   POST /api/v1/orders/:id/deliver  (buyer)
-router.post("/:id/accept", validate(actionSchema), acceptOrder);
-router.post("/:id/decline", validate(actionSchema), declineOrder);
 router.post("/:id/cancel", validate(actionSchema), cancelOrder);
 router.post("/:id/ship", validate(shipSchema), shipOrder);
 router.post("/:id/deliver", validate(actionSchema), deliverOrder);
