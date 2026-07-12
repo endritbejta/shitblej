@@ -44,7 +44,7 @@ export default function Hero() {
             collectibles. Sell yours in minutes.
           </p>
 
-          {/* Big search */}
+          {/* Big search
           <button
             onClick={open}
             className="group mt-8 flex w-full max-w-lg items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-left backdrop-blur-md transition-all duration-250 ease-premium hover:border-white/30 hover:bg-white/15"
@@ -56,7 +56,7 @@ export default function Hero() {
             <span className="hidden shrink-0 items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-white transition-transform group-hover:translate-x-0.5 sm:flex">
               Search <ArrowRight className="h-4 w-4" />
             </span>
-          </button>
+          </button> */}
 
           {/* Quick category chips */}
           <div className="mt-6 flex flex-wrap items-center gap-2">
