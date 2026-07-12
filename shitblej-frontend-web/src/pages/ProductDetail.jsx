@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProductById } from "../api/products";
-import { sendMessage } from "../api/messages";
 import { useAuth } from "../context/AuthContext";
 import Header from "../layouts/Header";
 import Footer from "../layouts/Footer";
@@ -11,8 +10,8 @@ import ProductInfo from "../components/product/ProductInfo";
 import ProductDetails from "../components/product/ProductDetails";
 import SellerCard from "../components/product/SellerCard";
 import ProductActions from "../components/product/ProductActions";
-import BuyModal from "../components/product/BuyModal";
-import OfferModal from "../components/product/OfferModal";
+import MakeOfferDialog from "../components/offers/MakeOfferDialog";
+import BuyNowDialog from "../components/offers/BuyNowDialog";
 import Loading from "../components/Loading";
 
 export default function ProductDetail() {
@@ -24,13 +23,10 @@ export default function ProductDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeImage, setActiveImage] = useState(0);
-    
-    // Modal states
-    const [showBuyModal, setShowBuyModal] = useState(false);
-    const [showOfferModal, setShowOfferModal] = useState(false);
-    const [offerAmount, setOfferAmount] = useState("");
-    const [offerMessage, setOfferMessage] = useState("");
-    const [sendingOffer, setSendingOffer] = useState(false);
+
+    // Negotiation dialogs (offer / buy-now, both via the offers API)
+    const [showBuyNow, setShowBuyNow] = useState(false);
+    const [showOffer, setShowOffer] = useState(false);
 
     const [scrollY, setScrollY] = useState(0);
 
@@ -64,7 +60,7 @@ export default function ProductDetail() {
             navigate('/login', { state: { from: `/products/${id}` } });
             return;
         }
-        setShowBuyModal(true);
+        setShowBuyNow(true);
     };
 
     const handleMakeOffer = () => {
@@ -72,37 +68,7 @@ export default function ProductDetail() {
             navigate('/login', { state: { from: `/products/${id}` } });
             return;
         }
-        setOfferAmount("");
-        setOfferMessage("");
-        setShowOfferModal(true);
-    };
-
-    const submitOffer = async () => {
-        if (!offerAmount || parseFloat(offerAmount) <= 0) {
-            alert("Please enter a valid offer amount");
-            return;
-        }
-
-        try {
-            setSendingOffer(true);
-            const message = `I'd like to make an offer of $${offerAmount} for "${product.name}". ${offerMessage}`;
-            // sendMessage(senderId, receiverId, text)
-            await sendMessage(user._id, product.user?._id || product.seller?._id, message);
-            
-            setShowOfferModal(false);
-            alert("Your offer has been sent to the seller!");
-            navigate('/inbox');
-        } catch (err) {
-            console.error(err);
-            alert("Failed to send offer. Please try again.");
-        } finally {
-            setSendingOffer(false);
-        }
-    };
-
-    const confirmPurchase = () => {
-        alert(`Purchase confirmed! You bought ${product.name} for $${product.price}`);
-        setShowBuyModal(false);
+        setShowOffer(true);
     };
 
     if (loading) return <Loading fullScreen message="Loading product..." />;
@@ -170,26 +136,21 @@ export default function ProductDetail() {
                 <Footer />
             </div>
 
-            {/* Modals */}
-            <BuyModal 
-                isOpen={showBuyModal} 
-                onClose={() => setShowBuyModal(false)} 
-                product={product} 
-                images={images}
-                onConfirm={confirmPurchase} 
-            />
-            <OfferModal 
-                isOpen={showOfferModal} 
-                onClose={() => setShowOfferModal(false)} 
-                product={product} 
-                images={images}
-                offerAmount={offerAmount}
-                setOfferAmount={setOfferAmount}
-                offerMessage={offerMessage}
-                setOfferMessage={setOfferMessage}
-                onSubmit={submitOffer} 
-                isLoading={sendingOffer} 
-            />
+            {/* Negotiation dialogs */}
+            {showBuyNow && (
+                <BuyNowDialog
+                    product={product}
+                    sellerId={seller.id}
+                    onClose={() => setShowBuyNow(false)}
+                />
+            )}
+            {showOffer && (
+                <MakeOfferDialog
+                    product={product}
+                    sellerId={seller.id}
+                    onClose={() => setShowOffer(false)}
+                />
+            )}
         </>
     );
 }

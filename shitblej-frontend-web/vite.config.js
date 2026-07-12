@@ -20,6 +20,13 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: !target.includes("localhost"),
         },
+        // Realtime (socket.io) rides the same backend.
+        "/socket.io": {
+          target,
+          changeOrigin: true,
+          secure: !target.includes("localhost"),
+          ws: true,
+        },
       },
     },
   };
