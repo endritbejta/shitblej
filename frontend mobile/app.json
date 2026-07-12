@@ -3,9 +3,6 @@
     "name": "frontend",
     "slug": "frontend",
     "version": "1.0.0",
-    "extra": {
-      "MONGO_URI": "mongodb+srv://***REMOVED***@***REMOVED***/shitblej?retryWrites=true&w=majority&appName=Cluster0"
-    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
