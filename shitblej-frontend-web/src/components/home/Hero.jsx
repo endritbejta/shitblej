@@ -1,6 +1,4 @@
-import { Search as SearchIcon, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useSearch } from "../../context/SearchContext";
 import { CATEGORIES } from "../../constants";
 
 const QUICK = ["designer-items", "electronics", "sport", "hobby-collector", "home"];
@@ -11,7 +9,6 @@ const QUICK = ["designer-items", "electronics", "sport", "hobby-collector", "hom
  * fast-loading statement that sets the premium tone.
  */
 export default function Hero() {
-  const { open } = useSearch();
   const quick = QUICK.map((id) => CATEGORIES.find((c) => c.id === id)).filter(Boolean);
 
   return (

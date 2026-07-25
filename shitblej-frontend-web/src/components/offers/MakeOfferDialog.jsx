@@ -36,7 +36,7 @@ export default function MakeOfferDialog({ product, sellerId, onClose }) {
     }
   };
 
-  const blockedContent = (reason, activeOfferId) => {
+  const blockedContent = (reason) => {
     if (reason === "active_offer_exists") {
       return (
         <div className="space-y-4 py-2">
@@ -72,7 +72,7 @@ export default function MakeOfferDialog({ product, sellerId, onClose }) {
           </Button>
         </div>
       ) : options && !options.canOffer ? (
-        blockedContent(options.reason, options.activeOfferId)
+        blockedContent(options.reason)
       ) : options ? (
         <OfferComposer
           options={options}
