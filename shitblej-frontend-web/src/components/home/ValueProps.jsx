@@ -18,8 +18,8 @@ const ITEMS = [
   },
   {
     icon: MessageCircle,
-    title: "Talk to sellers",
-    body: "Ask questions and make offers directly, in real time.",
+    title: "Secure order chat",
+    body: "Messaging unlocks after checkout and stays inside Shitblej.",
   },
 ];
 

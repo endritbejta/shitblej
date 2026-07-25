@@ -15,7 +15,7 @@ const FALLBACK_POLL_MS = 15000;
  *   with accepts/counters from other devices).
  * - Falls back to polling only while the socket is down; resyncs on reconnect.
  * - sendText is optimistic and honours the backend messaging policy: a 403
- *   with reason "negotiation_required" locks the composer with the server's
+ *   with code "negotiation_required" locks the composer with the server's
  *   own message.
  *
  * Returns raw messages plus derived (never stored) timeline + negotiation.
@@ -27,15 +27,39 @@ export function useConversationMessages({ user, partnerId }) {
   // { message } when the backend refused free text (policy), else null.
   const [lock, setLock] = useState(null);
   const partnerRef = useRef(partnerId);
+  const requestIdRef = useRef(0);
   partnerRef.current = partnerId;
 
   const refresh = useCallback(async () => {
     if (!user || !partnerRef.current) return;
+    const requestedPartner = partnerRef.current;
+    const requestId = ++requestIdRef.current;
     try {
-      const res = await getMessages(partnerRef.current);
-      setMessages(res.data || []);
+      const res = await getMessages(requestedPartner);
+      if (
+        requestId !== requestIdRef.current ||
+        partnerRef.current !== requestedPartner
+      ) return;
+      const thread = res.data || [];
+      const hasAcceptedOrder = thread.some(
+        (message) =>
+          message.type === "offer" &&
+          message.offer &&
+          typeof message.offer === "object" &&
+          message.offer.order
+      );
+      setMessages(thread);
+      setLock(
+        !hasAcceptedOrder
+          ? {
+              message:
+                "Messaging unlocks after checkout creates an accepted order.",
+            }
+          : null
+      );
       setError(null);
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setError(
         err.response?.data?.error || "Couldn’t load this conversation."
       );
@@ -135,7 +159,7 @@ export function useConversationMessages({ user, partnerId }) {
         return true;
       } catch (err) {
         setMessages((prev) => prev.filter((m) => m._id !== optimistic._id));
-        if (err.response?.data?.reason === "negotiation_required") {
+        if (err.response?.data?.code === "negotiation_required") {
           setLock({ message: err.response.data.error });
         } else {
           setError(err.response?.data?.error || "Message failed to send.");
@@ -146,8 +170,8 @@ export function useConversationMessages({ user, partnerId }) {
     [user, partnerId]
   );
 
-  // A successful negotiation step can change the policy — clear the lock and
-  // let the next attempt re-check.
+  // Checkout links the accepted offer to an order. The caller clears the old
+  // lock immediately and refreshes the populated offer state.
   const clearLock = useCallback(() => setLock(null), []);
 
   const timeline = useMemo(() => buildTimeline(messages), [messages]);

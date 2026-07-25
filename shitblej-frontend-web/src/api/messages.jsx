@@ -16,7 +16,7 @@ export async function getMessages(otherUserId) {
 
 // Send a text message. The sender is the authenticated user (token-derived).
 // Note: the backend messaging policy may reject this with
-// 403 { reason: "negotiation_required" } until a deal exists between the pair.
+// 403 { code: "negotiation_required" } until an accepted order exists.
 export async function sendMessage(receiverId, text) {
     const { data } = await client.post("/messages", {
         receiver: receiverId,
