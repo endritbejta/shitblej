@@ -4,6 +4,7 @@ import OfferPrice from "./OfferPrice";
 import OfferStatusBadge from "./OfferStatusBadge";
 import OfferActions from "./OfferActions";
 import SmartImage from "../ui/SmartImage";
+import Button from "../ui/Button";
 import { formatCents } from "../../lib/money";
 import { cn } from "../../utils/cn";
 
@@ -32,6 +33,8 @@ function OfferCardComponent({
   onDecline,
   onCancel,
   onCounter,
+  canCheckout = false,
+  onCheckout,
 }) {
   const isCounter = !!offer.previousOffer;
   const isBuyNow = offer.type === "buy_now";
@@ -118,6 +121,11 @@ function OfferCardComponent({
             onDecline={onDecline}
             onCancel={onCancel}
           />
+          {canCheckout && (
+            <Button fullWidth onClick={onCheckout}>
+              Complete checkout
+            </Button>
+          )}
         </div>
 
         {error && (

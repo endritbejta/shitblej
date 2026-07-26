@@ -5,6 +5,7 @@ import OfferCard from "../offers/OfferCard";
 import OfferSystemEvent from "../offers/OfferSystemEvent";
 import OfferResponseDialog from "../offers/OfferResponseDialog";
 import OfferPrice from "../offers/OfferPrice";
+import CheckoutDialog from "../offers/CheckoutDialog";
 import { useConversationMessages } from "../../hooks/useConversationMessages";
 import { useOfferActions } from "../../hooks/useOfferActions";
 import { actionsFor } from "../../lib/negotiation";
@@ -57,8 +58,8 @@ function EmptyNegotiationState({ partnerName }) {
         Start negotiating with {partnerName}
       </p>
       <p className="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
-        Conversations here begin with an offer on a listing. Once a deal is
-        agreed, messaging opens up.
+        Conversations begin with structured offers. Messaging opens only after
+        checkout creates an accepted order.
       </p>
     </div>
   );
@@ -72,6 +73,7 @@ function EmptyNegotiationState({ partnerName }) {
 export default function ChatWindow({ conversation, user, onBack, typing = false }) {
   const [text, setText] = useState("");
   const [countering, setCountering] = useState(null);
+  const [checkingOut, setCheckingOut] = useState(null);
   const endRef = useRef(null);
   const prevCount = useRef(0);
 
@@ -89,7 +91,6 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
   const offerActions = useOfferActions({
     onSettled: () => {
       refresh();
-      clearLock(); // policy may have changed (e.g. offer accepted)
     },
   });
 
@@ -180,6 +181,11 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
                   const isOwn =
                     String(item.offer[item.offer.proposedBy]?._id || item.offer[item.offer.proposedBy]) ===
                     String(user._id);
+                  const canCheckout =
+                    item.offer.status === "accepted" &&
+                    String(item.offer.buyer?._id || item.offer.buyer) ===
+                      String(user._id) &&
+                    !item.offer.order;
                   return (
                     <OfferCard
                       key={item.id}
@@ -193,6 +199,8 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
                       onDecline={() => offerActions.decline(item.offer._id).catch(() => {})}
                       onCancel={() => offerActions.cancel(item.offer._id).catch(() => {})}
                       onCounter={() => setCountering(item.offer)}
+                      canCheckout={canCheckout}
+                      onCheckout={() => setCheckingOut(item.offer)}
                     />
                   );
                 }
@@ -263,6 +271,18 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
           serverError={offerActions.errorFor(countering._id)}
           onSubmit={submitCounter}
           onClose={() => setCountering(null)}
+        />
+      )}
+
+      {checkingOut && (
+        <CheckoutDialog
+          offer={checkingOut}
+          onClose={() => setCheckingOut(null)}
+          onSuccess={() => {
+            setCheckingOut(null);
+            clearLock();
+            refresh();
+          }}
         />
       )}
     </div>
