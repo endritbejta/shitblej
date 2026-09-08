@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Message = require("./message.model");
 const ErrorResponse = require("../../shared/utils/errorResponse");
 const domainEvents = require("../../shared/events/domainEvents");
@@ -91,49 +92,88 @@ exports.createOfferMessage = async ({ sender, receiver, offer }) => {
 
 // @desc Build the conversation list for a user: one entry per partner with the
 // most recent message.
+//
+// Grouped in the database rather than in JS. The previous implementation read
+// every message the user had ever exchanged, populated both parties on each
+// one, then deduplicated in memory - so opening the inbox cost O(all messages)
+// and grew forever. The pipeline returns one row per partner instead.
 exports.getConversations = async (userId) => {
-  const messages = await Message.find({
-    $or: [{ sender: userId }, { receiver: userId }],
-  })
-    .populate("sender", "name image")
-    .populate("receiver", "name image")
-    .sort({ createdAt: -1 });
+  const id = new mongoose.Types.ObjectId(String(userId));
 
-  const conversations = new Map();
-
-  for (const msg of messages) {
-    const isSender = msg.sender._id.toString() === userId;
-    const partner = isSender ? msg.receiver : msg.sender;
-    const partnerId = partner._id.toString();
-
-    // Messages are sorted newest-first, so the first time we see a partner is
-    // their latest message.
-    if (!conversations.has(partnerId)) {
-      conversations.set(partnerId, {
-        id: partner._id,
-        name: partner.name,
-        avatar: partner.image || DEFAULT_AVATAR,
-        lastMessage: msg.text,
-        time: msg.createdAt,
-      });
-    }
-  }
-
-  return Array.from(conversations.values());
+  return Message.aggregate([
+    { $match: { $or: [{ sender: id }, { receiver: id }] } },
+    // Newest first, so $first in the group below is the latest message.
+    { $sort: { createdAt: -1 } },
+    {
+      $group: {
+        // The other party, whichever side of the message this user is on.
+        _id: {
+          $cond: [{ $eq: ["$sender", id] }, "$receiver", "$sender"],
+        },
+        lastMessage: { $first: "$text" },
+        time: { $first: "$createdAt" },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "partner",
+      },
+    },
+    // preserveNull: a deleted account must not make the conversation vanish
+    // (nor throw, which is what populating a dangling ref used to do).
+    { $unwind: { path: "$partner", preserveNullAndEmptyArrays: true } },
+    { $sort: { time: -1 } },
+    {
+      $project: {
+        _id: 0,
+        id: "$_id",
+        name: { $ifNull: ["$partner.name", "Deleted user"] },
+        avatar: { $ifNull: ["$partner.image", DEFAULT_AVATAR] },
+        lastMessage: 1,
+        time: 1,
+      },
+    },
+  ]);
 };
 
-// @desc Get the full message thread between two users, oldest-first.
+// @desc Get the message thread between two users, oldest-first.
 // Offer messages carry the current state of their offer so the client can
 // render live cards (with accept/decline/counter buttons on the active one).
-exports.getConversationBetween = async ({ userA, userB }) => {
-  return Message.find({
+//
+// Pagination is OPT-IN: pass a limit to get the most recent slice (still
+// returned oldest-first, the order a chat view renders). Without one the whole
+// thread comes back, as before. The unbounded default is deliberate for now -
+// the web client scans the full thread for an offer message carrying an order
+// to decide whether the composer is unlocked, so silently windowing it would
+// lock chat on long threads. Moving that signal server-side is what unblocks
+// making pagination the default.
+exports.getConversationBetween = async ({ userA, userB, limit, page = 1 }) => {
+  const filter = {
     $or: [
       { sender: userA, receiver: userB },
       { sender: userB, receiver: userA },
     ],
-  })
-    .sort({ createdAt: 1 })
+  };
+
+  if (!limit) {
+    return Message.find(filter).sort({ createdAt: 1 }).populate("offer");
+  }
+
+  const perPage = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
+  const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * perPage;
+
+  // Walk backwards from the newest message, then flip so the caller still
+  // receives the slice in reading order.
+  const messages = await Message.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(perPage)
     .populate("offer");
+
+  return messages.reverse();
 };
 
 exports.MESSAGE_EVENTS = MESSAGE_EVENTS;

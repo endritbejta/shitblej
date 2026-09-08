@@ -27,9 +27,9 @@ exports.getUsers = asyncHandler(async (req, res) => {
 
 // @desc    Get single user
 // @route   GET /api/v1/users/:id
-// @access  Private (Owner or Admin)
+// @access  Private (any authenticated user; contact details owner/admin only)
 exports.getUser = asyncHandler(async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
+  const user = await userService.getUserById(req.params.id, req.user);
   res.status(200).json({ success: true, data: user });
 });
 

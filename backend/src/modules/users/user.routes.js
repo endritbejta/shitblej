@@ -15,6 +15,7 @@ const {
   authorizeOwnerOrAdmin,
 } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
+const { authLimiter } = require("../../middleware/rateLimit");
 const { upload } = require("../../config/cloudinary");
 const {
   registerSchema,
@@ -24,14 +25,18 @@ const {
 } = require("./user.validation");
 
 // --- Public routes (authentication) ---
-router.post("/register", validate(registerSchema), registerUser);
-router.post("/login", validate(loginSchema), loginUser);
+// Unauthenticated and credential-bearing, so both carry the tight limiter:
+// login is the brute-force target, register the account-enumeration one.
+router.post("/register", authLimiter, validate(registerSchema), registerUser);
+router.post("/login", authLimiter, validate(loginSchema), loginUser);
 
 // --- User management ---
 // Get all users - Admin only
 router.get("/", protect, authorize("admin"), getUsers);
 
-// Get single user - any authenticated user can view
+// Get single user - any authenticated user can view. The response is scoped
+// to the caller: parties see a seller's public profile, and contact details
+// (email, phone) go only to the owner or an admin. See user.service.js.
 router.get("/:id", protect, validate(userIdParamSchema), getUser);
 
 // Update user - self or admin; supports profile image upload

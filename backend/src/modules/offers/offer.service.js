@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const Offer = require("./offer.model");
 const Product = require("../products/product.model");
 const inventory = require("../products/product.inventory");
+// Model only, never the orders service - that one depends on this file, and
+// going through it would close the cycle.
+const Order = require("../orders/order.model");
 const messageService = require("../messages/message.service");
 const ErrorResponse = require("../../shared/utils/errorResponse");
 const domainEvents = require("../../shared/events/domainEvents");
@@ -480,14 +483,25 @@ exports.getOfferOptions = async ({ productId, user }) => {
 
 // @desc Sweep for a scheduler: expire overdue proposals and release
 // reservations held by accepted offers whose checkout window lapsed.
-// (Lazy checks in the hot paths make this a cleanup, not a correctness need.)
+//
+// For overdue PENDING proposals this is cleanup - the lazy check in
+// loadForParty already stops anyone acting on a stale one. For accepted
+// agreements it is NOT cleanup: the lazy check lives in checkout, and the
+// case that matters is the buyer who agrees a price and never returns, so
+// checkout is never called. Without this sweep running on a schedule that
+// item stays `reserved` forever - unsellable and undeletable. See
+// src/jobs/scheduler.js, which is what actually calls this.
 exports.expireOffers = async (now = new Date()) => {
+  // Full documents: expireIfDue reads `expiresAt` and `status`, and a
+  // projection that omits either makes it silently stop expiring anything.
   const overdue = await Offer.find({
     status: OFFER_STATUS.PENDING,
     expiresAt: { $lte: now },
-  }).select("_id buyer seller product productName proposedBy amountCents negotiationRoot type currency status");
+  });
+  let expiredPending = 0;
   for (const offer of overdue) {
-    await expireIfDue(offer);
+    const result = await expireIfDue(offer);
+    if (result && result.status === OFFER_STATUS.EXPIRED) expiredPending += 1;
   }
 
   const staleAgreements = await Offer.find({
@@ -495,7 +509,24 @@ exports.expireOffers = async (now = new Date()) => {
     order: { $exists: false },
     checkoutExpiresAt: { $lte: now },
   });
+
+  let expiredAgreements = 0;
   for (const offer of staleAgreements) {
+    // `offer.order` is set by consumeAcceptedOffer AFTER the order row is
+    // written, and that write is allowed to fail without failing checkout.
+    // So an unset `order` does not prove no order exists - releasing on that
+    // assumption alone would put a sold item back on the market. Ask the
+    // orders collection directly before touching inventory.
+    const orderExists = await Order.exists({ sourceOffer: offer._id });
+    if (orderExists) {
+      // Repair the missed link instead of expiring a live agreement.
+      await Offer.updateOne(
+        { _id: offer._id, order: { $exists: false } },
+        { $set: { order: orderExists._id } }
+      );
+      continue;
+    }
+
     const expired = await Offer.findOneAndUpdate(
       { _id: offer._id, status: OFFER_STATUS.ACCEPTED, order: { $exists: false } },
       { $set: { status: OFFER_STATUS.EXPIRED } },
@@ -504,10 +535,11 @@ exports.expireOffers = async (now = new Date()) => {
     if (expired) {
       await inventory.releaseProducts([expired.product]);
       emitOfferEvent(OFFER_EVENTS.EXPIRED, expired, idOf(expired.buyer));
+      expiredAgreements += 1;
     }
   }
 
-  return { expiredPending: overdue.length, expiredAgreements: staleAgreements.length };
+  return { expiredPending, expiredAgreements };
 };
 
 // Internal API for the orders module (checkout): claim an accepted offer.
