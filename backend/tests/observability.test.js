@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const request = require("supertest");
 const app = require("./helpers/api").server;
 const db = require("./helpers/db");
-const { createUser } = require("./helpers/factories");
 const logger = require("../src/shared/logger");
 
 beforeAll(() => db.connect());
