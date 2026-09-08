@@ -47,9 +47,18 @@ done
 # REDACTED, ***).
 added=$(git diff --cached --unified=0 | grep '^+' | grep -v '^+++')
 
+PLACEHOLDERS='<[a-z_]+>|your-|your_|change-me|changeme|replace-|example\.com|REDACTED|\*\*\*|placeholder|xxx+|test-secret'
+
 check() {
-  # $1 = description, $2 = extended regex
-  hits=$(printf '%s\n' "$added" | grep -nEi -e "$2" | grep -viE '<[a-z_]+>|your-|your_|change-me|changeme|replace-|example\.com|REDACTED|\*\*\*|placeholder|xxx+|test-secret' | head -3)
+  # $1 = description, $2 = extended regex. Case-insensitive.
+  hits=$(printf '%s\n' "$added" | grep -nEi -e "$2" | grep -viE "$PLACEHOLDERS" | head -3)
+  [ -n "$hits" ] && note "$1" && printf '%s\n' "$hits" | sed 's/^/      /'
+}
+
+check_cs() {
+  # As check, but case-SENSITIVE - for patterns that rely on an UPPER_SNAKE
+  # key to tell a config assignment apart from ordinary code.
+  hits=$(printf '%s\n' "$added" | grep -nE -e "$2" | grep -viE "$PLACEHOLDERS" | head -3)
   [ -n "$hits" ] && note "$1" && printf '%s\n' "$hits" | sed 's/^/      /'
 }
 
@@ -67,10 +76,24 @@ check "a Google API key" \
       'AIza[0-9A-Za-z_-]{30,}'
 check "a Stripe key" \
       'sk_(live|test)_[0-9a-zA-Z]{16,}'
-# Assignment-shaped secrets: a key name that means "secret" with a value long
-# enough to be one. Deliberately loose, since --no-verify is one flag away.
+# Assignment-shaped secrets: a key name that means "secret", with a value long
+# enough to be one. Two shapes, because their false-positive profiles differ.
+SECRETISH='api[_-]?secret|api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|password|passwd|jwt[_-]?secret'
+
+# (a) A QUOTED literal. A secret written into source IS a string literal, so
+#     requiring the quote costs no real coverage. Leaving it optional - as
+#     this did originally - matched any identifier on the right-hand side, so
+#     `password = generatePassword()` was reported as a credential. A hook
+#     that blocks ordinary code only teaches people to pass --no-verify.
 check "a secret assigned inline" \
-      '(api[_-]?secret|api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|password|passwd|jwt[_-]?secret)["'"'"']?\s*[:=]\s*["'"'"']?[A-Za-z0-9/+_-]{8,}'
+      "($SECRETISH)[\"']?[[:space:]]*[:=][[:space:]]*[\"'][A-Za-z0-9/+=_-]{8,}"
+
+# (b) An UNQUOTED value, which is the env/shell/YAML shape
+#     (JWT_SECRET=abc123456, or `export JWT_SECRET=...`). Only for UPPER_SNAKE
+#     keys: a lowercase one is almost always code. Values that are a function
+#     call are excluded for the same reason.
+check_cs "a secret assigned in an environment-style variable" \
+      "(API_SECRET|API_KEY|SECRET_KEY|ACCESS_TOKEN|AUTH_TOKEN|CLIENT_SECRET|PASSWORD|PASSWD|JWT_SECRET)[[:space:]]*=[[:space:]]*[A-Za-z0-9/+=_-]{8,}[[:space:]]*$"
 
 if [ "$fail" -ne 0 ]; then
   printf '\n  Nothing has been committed. If a hit is a false positive:\n'

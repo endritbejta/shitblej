@@ -93,3 +93,62 @@ jobs:
       - run: npm run build
         env:
           VITE_API_URL: https://api.invalid
+
+  e2e:
+    name: E2E (browser against the real API)
+    runs-on: ubuntu-latest
+    # Runs after the unit lanes, not alongside them. A browser journey that
+    # fails because a unit is broken tells you less, more slowly, than the
+    # unit test that already said so - and this lane costs a browser download
+    # and a mongod binary.
+    needs: [backend, web]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Three installs: the harness itself, plus both applications, because
+      # this lane runs the real backend and builds the real frontend rather
+      # than any kind of stub.
+      - name: Install dependencies
+        run: |
+          npm ci --prefix backend
+          npm ci --prefix shitblej-frontend-web
+          npm ci --prefix e2e
+
+      # Chromium only. A second engine doubles the runtime to re-test the same
+      # application logic; cross-browser rendering is not what this suite is
+      # for.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: e2e
+
+      # mongodb-memory-server downloads a mongod binary on first use and caches
+      # it here, so this is worth keeping between runs.
+      - name: Cache mongod binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}
+
+      # playwright.config.js starts both servers itself: api-server.js (the
+      # real Express app against an in-memory MongoDB) and a production build
+      # of the web app served by `vite preview`. It waits on /health/ready
+      # rather than /health, so no test runs before the database answers.
+      - run: npm test
+        working-directory: e2e
+
+      # Only produced on failure (trace/screenshot/video are retain-on-failure),
+      # which is exactly when they are worth having.
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7

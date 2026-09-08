@@ -61,11 +61,16 @@ describe("product image upload", () => {
     expect(res.body.data.images).toHaveLength(1);
 
     const url = res.body.data.images[0];
-    expect(url).toMatch(/^\/uploads\/[0-9a-f-]{36}\.png$/);
+    // Absolute, not root-relative: the frontend is served from a different
+    // origin than the API, so "/uploads/x.png" would resolve against the
+    // static host and 404. This is what the e2e run caught.
+    expect(url).toMatch(
+      new RegExp(`^${config.uploads.publicBaseUrl}/uploads/[0-9a-f-]{36}\\.png$`)
+    );
 
     // The URL the product stores has to actually resolve - that is the whole
     // contract between the storage engine and the frontend's <img src>.
-    const served = await request(app).get(url);
+    const served = await request(app).get(new URL(url).pathname);
     expect(served.status).toBe(200);
     expect(served.headers["content-type"]).toMatch(/image\/png/);
     expect(Buffer.compare(served.body, PNG)).toBe(0);
@@ -136,6 +141,24 @@ describe("product image upload", () => {
   it("404s an upload URL that does not exist instead of falling through", async () => {
     const res = await request(app).get("/uploads/00000000-0000-4000-8000-000000000000.png");
     expect(res.status).toBe(404);
+  });
+
+  it("relaxes Cross-Origin-Resource-Policy for uploads, but only for uploads", async () => {
+    const { token } = await createUser();
+    const res = await postListing(token).attach("images", PNG, "corp.png");
+    const url = new URL(res.body.data.images[0]).pathname;
+
+    const served = await request(app).get(url);
+    // Without this the browser refuses to render the image even though the
+    // response is a clean 200: helmet's default is same-origin, and the
+    // frontend is served from a different origin than the API. Invisible to a
+    // request-level test until asserted, which is why the end-to-end run
+    // found it first.
+    expect(served.headers["cross-origin-resource-policy"]).toBe("cross-origin");
+
+    // ...and the rest of the API keeps the strict default.
+    const api = await request(app).get("/api/v1/products");
+    expect(api.headers["cross-origin-resource-policy"]).toBe("same-origin");
   });
 
   afterAll(async () => {

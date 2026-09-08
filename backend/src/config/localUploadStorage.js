@@ -35,14 +35,19 @@ const EXTENSION_BY_MIME = {
 
 class LocalUploadStorage {
   /**
-   * @param {object}   opts
-   * @param {string}   opts.directory  absolute path to write into
-   * @param {string}   opts.publicPath URL prefix the directory is served at
+   * @param {object} opts
+   * @param {string} opts.directory      absolute path to write into
+   * @param {string} opts.publicPath     URL prefix the directory is served at
+   * @param {string} opts.publicBaseUrl  origin those URLs are absolute against
    */
-  constructor({ directory, publicPath = "/uploads" } = {}) {
+  constructor({ directory, publicPath = "/uploads", publicBaseUrl = "" } = {}) {
     if (!directory) throw new Error("LocalUploadStorage requires a directory");
     this.directory = directory;
     this.publicPath = publicPath;
+    // Absolute, because the frontend is served from a different origin than
+    // the API: a root-relative URL would resolve against the static host and
+    // 404. See config.uploads.publicBaseUrl.
+    this.publicBaseUrl = publicBaseUrl.replace(/\/+$/, "");
     fs.mkdirSync(this.directory, { recursive: true });
   }
 
@@ -63,7 +68,7 @@ class LocalUploadStorage {
       .then(() => {
         const { size } = fs.statSync(destination);
         cb(null, {
-          path: `${this.publicPath}/${filename}`,
+          path: `${this.publicBaseUrl}${this.publicPath}/${filename}`,
           filename,
           size,
           mimetype: file.mimetype,
