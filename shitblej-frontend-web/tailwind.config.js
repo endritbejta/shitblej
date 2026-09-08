@@ -79,6 +79,17 @@ export default {
           "70%": { transform: "scale(0.9)" },
           "100%": { transform: "scale(1)" },
         },
+        // Loading indicators reveal late on purpose - see `loader-in` below.
+        "loader-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        // prefers-reduced-motion substitute for the spinner: the arc still
+        // signals "working" by breathing rather than travelling.
+        "loader-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.35" },
+        },
       },
       animation: {
         "slide-up": "slide-up 0.5s cubic-bezier(0.22,1,0.36,1) forwards",
@@ -86,6 +97,11 @@ export default {
         "scale-in": "scale-in 0.25s cubic-bezier(0.22,1,0.36,1) forwards",
         "overlay-in": "overlay-in 0.22s cubic-bezier(0.22,1,0.36,1) forwards",
         "heart-pop": "heart-pop 0.35s cubic-bezier(0.22,1,0.36,1)",
+        // The 240ms delay is the point: most loads finish inside it, so a
+        // spinner never flashes for work the user did not perceive as waiting.
+        // `both` holds opacity 0 through the delay instead of painting first.
+        "loader-in": "loader-in 200ms ease-out 240ms both",
+        "loader-pulse": "loader-pulse 1.4s ease-in-out infinite",
       },
     },
   },
