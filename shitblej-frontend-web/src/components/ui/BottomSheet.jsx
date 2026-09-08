@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
@@ -7,6 +8,12 @@ import { X } from "lucide-react";
  * closes on backdrop click / Escape. Content scrolls if it overflows.
  */
 export default function BottomSheet({ open, onClose, title, children, footer }) {
+  const sheetRef = useRef(null);
+
+  // Only while open: the sheet stays mounted when closed on some routes, and
+  // trapping focus into a hidden surface would strand the keyboard.
+  useFocusTrap(sheetRef, open);
+
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -24,7 +31,14 @@ export default function BottomSheet({ open, onClose, title, children, footer }) 
   // Portal to body so the fixed overlay escapes any transform/backdrop-filter
   // containing block (e.g. the sticky, blurred toolbar it's triggered from).
   return createPortal(
-    <div className="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      ref={sheetRef}
+      className="fixed inset-0 z-[100] md:hidden"
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       <button
         aria-label="Close"
         onClick={onClose}

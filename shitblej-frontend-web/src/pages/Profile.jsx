@@ -4,7 +4,9 @@ import { PackageOpen, Heart } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { updateUserProfile } from "../api/auth";
+import { useQuery } from "@tanstack/react-query";
 import { getProducts } from "../api/products";
+import { queryKeys } from "../lib/queryClient";
 import ProfileHeader from "../components/profile/ProfileHeader";
 import ProductGrid from "../components/ui/ProductGrid";
 import EmptyState from "../components/ui/EmptyState";
@@ -22,33 +24,23 @@ export default function Profile() {
   const { items: savedItems } = useWishlist();
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState("");
   const [tab, setTab] = useState("listings");
 
+  // The seller's own listings, cached per user.
+  const { data: products = [], isPending } = useQuery({
+    queryKey: queryKeys.sellerProducts(user?._id),
+    queryFn: () => getProducts({ user: user._id }),
+    enabled: Boolean(user?._id),
+  });
+
+  const loadingProducts = Boolean(user?._id) && isPending;
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login", { state: { from: "/profile" } });
-      return;
     }
-    let cancelled = false;
-    (async () => {
-      if (!user?._id) return;
-      try {
-        setLoadingProducts(true);
-        const data = await getProducts({ user: user._id });
-        if (!cancelled) setProducts(data);
-      } catch {
-        if (!cancelled) setProducts([]);
-      } finally {
-        if (!cancelled) setLoadingProducts(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
   }, [user, authLoading, navigate]);
 
   const handleLogout = () => {
