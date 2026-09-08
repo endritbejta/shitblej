@@ -175,3 +175,119 @@ describe("the limiter behind a shared store", () => {
     expect(blocked.body).toMatchObject({ success: false, code: "rate_limited" });
   });
 });
+
+describe("each limiter keeps its own counter", () => {
+  // The bug this guards: both limiters wrote to one document keyed by bare
+  // IP, and an auth request passes through the blanket /api/v1 limiter AND
+  // the tighter auth limiter. So general browsing incremented the number the
+  // auth limiter reads, and roughly ten requests of any kind from one address
+  // locked that address out of logging in for the rest of the window.
+  it("does not let one limiter's traffic count against another's", async () => {
+    const api = new MongoRateLimitStore({ prefix: "api:" });
+    const auth = new MongoRateLimitStore({ prefix: "auth:" });
+    api.init({ windowMs: 60_000 });
+    auth.init({ windowMs: 60_000 });
+
+    for (let i = 0; i < 5; i += 1) await api.increment("1.2.3.4");
+
+    // The auth limiter has seen nothing from this address.
+    const first = await auth.increment("1.2.3.4");
+    expect(first.totalHits).toBe(1);
+
+    // ...and the api counter is untouched by the auth hit.
+    const apiNext = await api.increment("1.2.3.4");
+    expect(apiNext.totalHits).toBe(6);
+  });
+
+  it("exposes `prefix`, which is what express-rate-limit reads", async () => {
+    // The library builds `${store.prefix ?? ""}${key}` to decide whether one
+    // request counted a key twice (ERR_ERL_DOUBLE_COUNT). Without this field
+    // both limiters looked like the same counter and it threw on every auth
+    // request outside NODE_ENV=test.
+    expect(new MongoRateLimitStore({ prefix: "auth:" }).prefix).toBe("auth:");
+    expect(new MongoRateLimitStore().prefix).toBe("");
+  });
+
+  it("keeps separate keys per client within a limiter", async () => {
+    const store = new MongoRateLimitStore({ prefix: "api:" });
+    store.init({ windowMs: 60_000 });
+
+    await store.increment("10.0.0.1");
+    await store.increment("10.0.0.1");
+    const other = await store.increment("10.0.0.2");
+
+    expect(other.totalHits).toBe(1);
+  });
+
+  it("resetAll clears only its own namespace", async () => {
+    const api = new MongoRateLimitStore({ prefix: "api:" });
+    const auth = new MongoRateLimitStore({ prefix: "auth:" });
+    api.init({ windowMs: 60_000 });
+    auth.init({ windowMs: 60_000 });
+
+    await api.increment("9.9.9.9");
+    await auth.increment("9.9.9.9");
+
+    await api.resetAll();
+
+    expect((await api.increment("9.9.9.9")).totalHits).toBe(1);
+    // Someone else's window is not ours to clear.
+    expect((await auth.increment("9.9.9.9")).totalHits).toBe(2);
+  });
+});
+
+describe("a route behind two limiters", () => {
+  // /api/v1/users/register really is behind two: the blanket limiter mounted
+  // on /api/v1, and the tighter auth limiter on the route itself.
+  const appWithBoth = () => {
+    const apiStore = new MongoRateLimitStore({ prefix: "api:" });
+    const authStore = new MongoRateLimitStore({ prefix: "auth:" });
+    const app = express();
+    app.set("trust proxy", 0);
+    app.use(
+      "/api",
+      createRateLimiter({ windowMs: 60_000, max: 100, store: apiStore }),
+      createRateLimiter({ windowMs: 60_000, max: 3, store: authStore }),
+      (req, res) => res.json({ ok: true })
+    );
+    return { app, apiStore, authStore };
+  };
+
+  it("counts each request once per limiter, not twice in one counter", async () => {
+    const { app } = appWithBoth();
+
+    expect((await request(app).get("/api/login")).status).toBe(200);
+
+    const counters = await RateLimitCounter.find().lean();
+    // Two documents, one per limiter, each at one hit. Before the prefix
+    // there was a single document at two hits, and express-rate-limit
+    // reported it as ERR_ERL_DOUBLE_COUNT on every auth request.
+    expect(counters).toHaveLength(2);
+    expect(counters.map((c) => c.hits)).toEqual([1, 1]);
+    expect(counters.map((c) => c._id).sort()).toEqual(["api:127.0.0.1", "auth:127.0.0.1"]);
+  });
+
+  it("does not let general traffic exhaust the tighter limit", async () => {
+    // The user-visible bug: browse ten pages, then be unable to log in.
+    const apiStore = new MongoRateLimitStore({ prefix: "api:" });
+    const authStore = new MongoRateLimitStore({ prefix: "auth:" });
+
+    const browsing = express();
+    browsing.set("trust proxy", 0);
+    browsing.use(createRateLimiter({ windowMs: 60_000, max: 100, store: apiStore }));
+    browsing.get("/", (req, res) => res.json({ ok: true }));
+
+    const login = express();
+    login.set("trust proxy", 0);
+    login.use(createRateLimiter({ windowMs: 60_000, max: 100, store: apiStore }));
+    login.use(createRateLimiter({ windowMs: 60_000, max: 3, store: authStore }));
+    login.post("/", (req, res) => res.json({ ok: true }));
+
+    for (let i = 0; i < 20; i += 1) {
+      expect((await request(browsing).get("/")).status).toBe(200);
+    }
+
+    // Logging in is still possible after all that browsing.
+    expect((await request(login).post("/")).status).toBe(200);
+  });
+});

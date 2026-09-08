@@ -21,8 +21,10 @@ const logger = require("../shared/logger");
 
 const CounterSchema = new mongoose.Schema(
   {
-    // The client key express-rate-limit hands us (an IP, by default), used
-    // directly as _id so an increment is a single primary-key upsert.
+    // The store's prefix plus the client key express-rate-limit hands us (an
+    // IP, by default), used directly as _id so an increment is a single
+    // primary-key upsert. The prefix is what keeps each limiter's counters
+    // separate - see the constructor.
     _id: { type: String },
     hits: { type: Number, required: true, default: 0 },
     expiresAt: { type: Date, required: true },
@@ -37,13 +39,43 @@ CounterSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const Counter = mongoose.model("RateLimitCounter", CounterSchema);
 
+// Regex-escape, for the prefix scan in resetAll.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 class MongoRateLimitStore {
   // express-rate-limit sets this to tell us the keys are shared, not
   // per-process, which is the entire point.
   localKeys = false;
 
+  /**
+   * @param {object} opts
+   * @param {string} opts.prefix namespace for this limiter's counters.
+   *
+   * The prefix is not cosmetic. Every limiter used to write to the same
+   * document, keyed by bare IP - and an auth request passes through BOTH the
+   * blanket /api/v1 limiter and the tighter auth limiter, so:
+   *
+   *   - one request counted twice, spending the auth allowance at double
+   *     rate, and
+   *   - far worse, the two tiers shared a single counter. Ordinary browsing
+   *     incremented the number the auth limiter reads, so roughly ten
+   *     requests of ANY kind from one address exhausted authMax and login
+   *     returned 429 for the rest of the window.
+   *
+   * express-rate-limit was in fact reporting this (ERR_ERL_DOUBLE_COUNT); it
+   * reads `store.prefix` when checking whether a key was counted twice for
+   * one request, which is why this field is public and part of the key.
+   */
+  constructor({ prefix = "" } = {}) {
+    this.prefix = prefix;
+  }
+
   init(options) {
     this.windowMs = options.windowMs;
+  }
+
+  keyFor(key) {
+    return `${this.prefix}${key}`;
   }
 
   // One atomic document update does the whole decision, so concurrent
@@ -53,7 +85,7 @@ class MongoRateLimitStore {
   async increment(key) {
     try {
       const doc = await Counter.findOneAndUpdate(
-        { _id: key },
+        { _id: this.keyFor(key) },
         [
           {
             $set: {
@@ -92,7 +124,7 @@ class MongoRateLimitStore {
   async decrement(key) {
     try {
       await Counter.updateOne(
-        { _id: key, expiresAt: { $gt: new Date() }, hits: { $gt: 0 } },
+        { _id: this.keyFor(key), expiresAt: { $gt: new Date() }, hits: { $gt: 0 } },
         { $inc: { hits: -1 } }
       );
     } catch {
@@ -102,7 +134,7 @@ class MongoRateLimitStore {
 
   async resetKey(key) {
     try {
-      await Counter.deleteOne({ _id: key });
+      await Counter.deleteOne({ _id: this.keyFor(key) });
     } catch {
       /* nothing to reset */
     }
@@ -110,7 +142,11 @@ class MongoRateLimitStore {
 
   async resetAll() {
     try {
-      await Counter.deleteMany({});
+      // This limiter's counters only - another limiter's window is not ours
+      // to clear.
+      await Counter.deleteMany(
+        this.prefix ? { _id: new RegExp(`^${escapeRegExp(this.prefix)}`) } : {}
+      );
     } catch {
       /* nothing to reset */
     }

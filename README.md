@@ -25,6 +25,7 @@ Key capabilities include:
 shitblej/
 ├── backend/                   # Express API, Socket.IO, MongoDB, and tests
 ├── shitblej-frontend-web/     # React and Vite web application
+├── e2e/                       # Playwright: a browser against the real stack
 ├── netlify.toml               # Web deployment configuration
 └── README.md
 ```
@@ -35,7 +36,7 @@ shitblej/
 | --- | --- |
 | Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.IO, JWT, Zod, Cloudinary |
 | Web | React 19, Vite 7, React Router, Tailwind CSS, Axios, i18next, Swiper |
-| Testing | Jest, Supertest, MongoDB Memory Server (backend); Vitest, React Testing Library (web) |
+| Testing | Jest, Supertest, MongoDB Memory Server (backend); Vitest, React Testing Library (web); Playwright (end-to-end) |
 
 ## Marketplace workflow
 
@@ -185,8 +186,21 @@ lives in `netlify.toml` under `[build.environment]`. See
 | `npm run dev` | Start the Vite development server |
 | `npm run build` | Create a production build |
 | `npm run preview` | Preview the production build locally |
+| `npm test` | Run the component and hook tests |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run the Vitest suite |
+
+### End-to-end
+
+Run from `e2e/`. Playwright starts the API and the web app itself.
+
+| Command | Description |
+| --- | --- |
+| `npm run install:browsers` | Download Chromium (first time only) |
+| `npm test` | Run the end-to-end suite |
+| `npm run test:ui` | Step through a run in Playwright's UI mode |
+| `npm run test:headed` | Watch it in a real browser window |
+| `npm run report` | Open the report from the last run |
 
 ## API modules
 
@@ -216,10 +230,37 @@ Verify the web application:
 ```bash
 cd shitblej-frontend-web
 npm run lint
+npm test
 npm run build
 ```
 
+Run the end-to-end suite — a real browser, against the real API, against a
+real database:
+
+```bash
+cd e2e
+npm run install:browsers   # first time only
+npm test
+```
+
+Playwright starts everything itself: the Express app against an in-memory
+MongoDB, and a production build of the web app served on a second origin (the
+shape production has). Nothing is stubbed. See `e2e/README.md` for what it
+covers and why it is set up that way.
+
 Backend integration coverage includes users, products, saved items, offers, negotiation rules, orders, messages, image upload (through a real multipart request, using the local upload driver), rate limiting, caching, observability and the background sweeper.
+
+| Suite | Where | Covers |
+| --- | --- | --- |
+| Backend | `backend/tests` | Express driven by supertest against an in-memory MongoDB |
+| Web | `shitblej-frontend-web/src/**/*.test.{js,jsx}` | Components and hooks in jsdom, API client mocked |
+| End-to-end | `e2e/tests` | Chromium against the real API and a real database, both origins |
+
+The three are complementary rather than layered: the first two each see one
+side of the wire, and the end-to-end suite exists for the failures that only
+appear when the halves talk to each other — a security header that blocks an
+image, an image URL that resolves against the wrong origin, a rate limiter
+whose counters collide.
 
 ## Deployment
 
