@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import SmartImage from "../ui/SmartImage";
 import { FEATURED_COLLECTIONS } from "../../constants";
+import { WIDTHS } from "../../lib/imageUrl";
 
 /**
  * Editorial collection cards — large imagery, gradient scrim, hover zoom.
@@ -21,6 +22,8 @@ export default function FeaturedCollections() {
             src={col.image}
             alt={col.title}
             wrapperClassName="absolute inset-0 h-full w-full"
+                widths={WIDTHS.tile}
+                sizes="(min-width: 640px) 50vw, 100vw"
             className="h-full w-full object-cover transition-transform duration-700 ease-premium group-hover:scale-105 absolute"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />

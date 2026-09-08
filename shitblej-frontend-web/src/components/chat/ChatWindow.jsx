@@ -11,6 +11,7 @@ import { useConversationMessages } from "../../hooks/useConversationMessages";
 import { useOfferActions } from "../../hooks/useOfferActions";
 import { actionsFor } from "../../lib/negotiation";
 import { cn } from "../../utils/cn";
+import { WIDTHS } from "../../lib/imageUrl";
 
 function dayLabel(date) {
   const d = new Date(date);
@@ -174,6 +175,8 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
           src={conversation.avatar}
           alt={conversation.name}
           wrapperClassName="h-10 w-10 shrink-0 rounded-full"
+                widths={WIDTHS.thumb}
+                sizes="40px"
           className="h-full w-full rounded-full object-cover"
         />
         <div className="min-w-0 flex-1">
@@ -192,6 +195,8 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
               src={productContext.productImage}
               alt={productContext.productName}
               wrapperClassName="h-9 w-9 rounded-lg"
+                widths={WIDTHS.thumb}
+                sizes="36px"
               className="h-full w-full rounded-lg object-cover"
             />
             <OfferPrice cents={productContext.amountCents} currency={productContext.currency} size="sm" />

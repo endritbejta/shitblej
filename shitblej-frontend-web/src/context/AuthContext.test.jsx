@@ -16,10 +16,15 @@ vi.mock("../api/auth", () => ({
   signup: vi.fn(),
 }));
 // Keep the socket out of it - covered by lib/socket.test.js.
-vi.mock("../lib/socket", () => ({ disconnectSocket: vi.fn() }));
+//
+// socketHandle, not socket: this provider deliberately imports the handle
+// module so that socket.io-client stays out of the entry bundle. The behaviour
+// asserted below is unchanged - the connection still closes on 401 - only the
+// module that owns it moved.
+vi.mock("../lib/socketHandle", () => ({ disconnectSocket: vi.fn() }));
 
 const { getCurrentUser } = await import("../api/auth");
-const { disconnectSocket } = await import("../lib/socket");
+const { disconnectSocket } = await import("../lib/socketHandle");
 
 const ALICE = { _id: "u1", name: "Alice", email: "alice@example.com" };
 const ALICE_FRESH = { ...ALICE, name: "Alice Renamed" };

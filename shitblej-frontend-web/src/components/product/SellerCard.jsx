@@ -1,12 +1,21 @@
 import { Link } from "react-router-dom";
 import { Star, ShieldCheck, MessageCircle } from "lucide-react";
+import { WIDTHS, buildSrcSet, imageAtWidth } from "../../lib/imageUrl";
 
 export default function SellerCard({ seller, isMobile = false }) {
     if (isMobile) {
         return (
             <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-4 mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <img src={seller.image} alt={seller.name} className="w-10 h-10 rounded-full object-cover" />
+                    <img
+                        src={imageAtWidth(seller.image, 96)}
+                        srcSet={buildSrcSet(seller.image, WIDTHS.thumb) || undefined}
+                        sizes="40px"
+                        alt={seller.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-10 h-10 rounded-full object-cover"
+                    />
                     <div>
                         <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{seller.name}</h3>
                         <div className="flex items-center gap-1 text-xs text-amber-500">
@@ -25,8 +34,12 @@ export default function SellerCard({ seller, isMobile = false }) {
         <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
                 <div className="relative">
-                    <img 
-                        src={seller.image} 
+                    <img
+                        src={imageAtWidth(seller.image, 96)}
+                        srcSet={buildSrcSet(seller.image, WIDTHS.thumb) || undefined}
+                        sizes="48px"
+                        loading="lazy"
+                        decoding="async" 
                         alt={seller.name} 
                         className="w-12 h-12 rounded-full object-cover"
                     />

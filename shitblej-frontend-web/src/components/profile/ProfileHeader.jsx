@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { User, Camera, Plus, LogOut, BadgeCheck, Loader2 } from "lucide-react";
 import Button from "../ui/Button";
+import { WIDTHS, buildSrcSet, imageAtWidth } from "../../lib/imageUrl";
 
 function Stat({ label, value }) {
   return (
@@ -38,7 +39,15 @@ export default function ProfileHeader({
         <div className="relative mx-auto shrink-0 sm:mx-0">
           <div className="h-24 w-24 overflow-hidden rounded-full border border-gray-200 bg-gray-100 dark:border-zinc-700 dark:bg-zinc-800">
             {avatar ? (
-              <img src={avatar} alt={user.name} className="h-full w-full object-cover" />
+              <img
+                src={imageAtWidth(avatar, 192)}
+                srcSet={buildSrcSet(avatar, WIDTHS.thumb) || undefined}
+                sizes="96px"
+                alt={user.name}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="grid h-full w-full place-items-center text-gray-400">
                 <User className="h-9 w-9" />

@@ -7,6 +7,7 @@ import SmartImage from "../ui/SmartImage";
 import Button from "../ui/Button";
 import { formatCents } from "../../lib/money";
 import { cn } from "../../utils/cn";
+import { WIDTHS } from "../../lib/imageUrl";
 
 /** Display-only countdown, from backend timestamps. */
 function timeLeft(iso) {
@@ -75,6 +76,8 @@ function OfferCardComponent({
               src={offer.productImage}
               alt={offer.productName}
               wrapperClassName="h-10 w-10 shrink-0 rounded-lg"
+                widths={WIDTHS.thumb}
+                sizes="40px"
               className="h-full w-full rounded-lg object-cover"
             />
             <div className="min-w-0">

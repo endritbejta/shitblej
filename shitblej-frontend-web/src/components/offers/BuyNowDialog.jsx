@@ -6,6 +6,7 @@ import SmartImage from "../ui/SmartImage";
 import Button from "../ui/Button";
 import Alert from "../ui/Alert";
 import { makeOffer } from "../../api/offers";
+import { WIDTHS } from "../../lib/imageUrl";
 
 /**
  * Buy Now = a full-price offer through the same negotiation pipeline: the
@@ -41,6 +42,8 @@ export default function BuyNowDialog({ product, sellerId, onClose }) {
             src={product.images?.[0] || product.image}
             alt={product.name}
             wrapperClassName="h-16 w-16 shrink-0 rounded-lg"
+                widths={WIDTHS.thumb}
+                sizes="64px"
             className="h-full w-full rounded-lg object-cover"
           />
           <div className="min-w-0 flex-1">

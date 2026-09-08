@@ -1,4 +1,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { WIDTHS, buildSrcSet, imageAtWidth } from "../../lib/imageUrl";
+
+// Desktop only (the parent is hidden md:block). The gallery column is half of
+// a max-w-6xl (1152px) grid with a 3rem gap, so ~536px at lg and up; below
+// that the grid is single-column and the image is container width.
+const MAIN_SIZES = "(min-width: 1024px) 536px, 100vw";
 
 export default function ProductImageGallery({ images, activeImage, setActiveImage, scrollY, productName }) {
     const nextImage = () => {
@@ -13,9 +19,20 @@ export default function ProductImageGallery({ images, activeImage, setActiveImag
         <div className="space-y-4">
             {/* Main Image */}
             <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 relative group">
+                {/* The LCP element on this page, so eager and high priority.
+                    srcSet asks for the displayed size rather than the full
+                    stored asset. */}
                 <img
-                    src={images[activeImage] || "https://via.placeholder.com/600?text=No+Image"}
+                    src={imageAtWidth(
+                        images[activeImage] || "https://via.placeholder.com/600?text=No+Image",
+                        960
+                    )}
+                    srcSet={buildSrcSet(images[activeImage], WIDTHS.detail) || undefined}
+                    sizes={images[activeImage] ? MAIN_SIZES : undefined}
                     alt={productName}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-full h-full object-contain transition-transform duration-300 ease-out will-change-transform"
                     style={{ transform: `scale(${1 + scrollY * 0.0005})` }}
                 />
@@ -52,7 +69,18 @@ export default function ProductImageGallery({ images, activeImage, setActiveImag
                                     : "border-transparent hover:border-gray-300 dark:hover:border-zinc-600"
                             }`}
                         >
-                            <img src={img} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
+                            {/* w-20 = 80px. These previously reused the main
+                                image's URL, so a thumbnail strip meant
+                                downloading every photo at full size. */}
+                            <img
+                                src={imageAtWidth(img, 160)}
+                                srcSet={buildSrcSet(img, WIDTHS.thumb) || undefined}
+                                sizes="80px"
+                                alt={`View ${index + 1}`}
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-cover"
+                            />
                         </button>
                     ))}
                 </div>

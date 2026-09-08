@@ -222,3 +222,63 @@ describe("the fallback keeps the caller's box", () => {
     expect(fallback.className).not.toContain("object-cover");
   });
 });
+
+describe("responsive delivery combined with the cached-image path", () => {
+  const CLOUDINARY =
+    "https://res.cloudinary.com/demo/image/upload/v1/shitblej-products/a.jpg";
+  const LADDER = [240, 320, 480];
+
+  it("asks for the displayed size and still skips the fade when cached", () => {
+    // These two behaviours were built on separate branches; this is the
+    // interaction between them. State keys on the URL actually put on the
+    // element, which with a srcset is the mid-ladder candidate, not `src`.
+    const restore = withCachedImages(true);
+    render(
+      <SmartImage src={CLOUDINARY} alt="A" widths={LADDER} sizes="320px" />
+    );
+
+    const el = img();
+    expect(el.getAttribute("src")).toContain("w_320");
+    expect(el.getAttribute("srcset")).toContain("240w");
+    expect(el.getAttribute("sizes")).toBe("320px");
+    expect(classesOf(el)).toContain("opacity-100");
+    expect(skeleton()).toBeNull();
+    restore();
+  });
+
+  it("still fades a responsive image the browser does not have yet", () => {
+    const restore = withCachedImages(false);
+    render(
+      <SmartImage src={CLOUDINARY} alt="A" widths={LADDER} sizes="320px" />
+    );
+
+    expect(classesOf(img())).toContain("opacity-0");
+    expect(skeleton()).not.toBeNull();
+    fireEvent.load(img());
+    expect(classesOf(img())).toContain("opacity-100");
+    restore();
+  });
+
+  it("omits srcset and sizes for a host that cannot resize", () => {
+    // A local /uploads path under UPLOAD_DRIVER=local. A srcset of identical
+    // URLs would make the browser think it was choosing.
+    const restore = withCachedImages(false);
+    render(
+      <SmartImage src="/uploads/a.jpg" alt="A" widths={LADDER} sizes="320px" />
+    );
+
+    const el = img();
+    expect(el.getAttribute("src")).toBe("/uploads/a.jpg");
+    expect(el.getAttribute("srcset")).toBeNull();
+    expect(el.getAttribute("sizes")).toBeNull();
+    restore();
+  });
+
+  it("does not treat the dead placeholder as resizable", () => {
+    render(
+      <SmartImage src="https://via.placeholder.com/150" alt="Avatar" widths={LADDER} />
+    );
+    expect(img()).toBeNull();
+    expect(screen.getByRole("img", { name: "Avatar" })).toBeTruthy();
+  });
+});

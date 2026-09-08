@@ -47,29 +47,34 @@ export const TRENDING_SEARCHES = [
 ];
 
 // Curated collections used on the homepage and search overlay.
+//
+// No `w=` here on purpose. SmartImage builds a responsive srcset from these
+// URLs (see lib/imageUrl.js), and a width baked in here would cap every
+// candidate at that size - these were pinned at w=1200 and downloading
+// 64-168 KiB each into tiles that are at most half the container wide.
 export const FEATURED_COLLECTIONS = [
     {
         id: 'designer-items',
         title: 'Designer Edit',
         subtitle: 'Authenticated luxury',
-        image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&auto=format&fit=crop',
     },
     {
         id: 'electronics',
         title: 'Tech & Gadgets',
         subtitle: 'Phones, consoles, audio',
-        image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&auto=format&fit=crop',
     },
     {
         id: 'hobby-collector',
         title: "Collector's Corner",
         subtitle: 'Rare & vintage finds',
-        image: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?q=80&auto=format&fit=crop',
     },
     {
         id: 'sport',
         title: 'Sport & Outdoor',
         subtitle: 'Gear that moves',
-        image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&auto=format&fit=crop',
     },
 ];

@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import logoBlack from "../../assets/shitblej.png";
-import logoWhite from "../../assets/shitblej-white.png";
+import BrandMark from "../ui/BrandMark";
 
 /**
  * Shared frame for the sign-in / sign-up pages: centered brand mark, a single
@@ -11,8 +10,8 @@ export default function AuthShell({ title, subtitle, children, footer }) {
   return (
     <div className="mx-auto flex min-h-[76vh] w-full max-w-[26rem] flex-col justify-center py-6">
       <Link to="/" aria-label="Shitblej — home" className="mb-8 flex justify-center">
-        <img src={logoBlack} alt="Shitblej" className="h-7 w-auto dark:hidden" />
-        <img src={logoWhite} alt="Shitblej" className="hidden h-7 w-auto dark:block" />
+        {/* Was two 2400px PNGs with dark:hidden, both downloaded. */}
+        <BrandMark className="h-7" />
       </Link>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">

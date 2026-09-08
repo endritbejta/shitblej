@@ -4,7 +4,7 @@ import HeaderDrawerCategories from "./HeaderDrawerCategories";
 import { useAuth } from "../../context/AuthContext";
 import LanguageSwitcher from "../LanguageSwitcher";
 
-const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen, headerHeight }) => {
+const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen }) => {
     const drawerRef = useRef(null);
     const { user, logout } = useAuth();
 
@@ -30,17 +30,21 @@ const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen, headerHeight }) =
     };
 
     return (
+        // `top-16 h-[calc(100vh-4rem)]` replaces an inline style computed from
+        // a measured header height. That measurement cost a forced reflow on
+        // every page mount (see layouts/Header.jsx); this drawer is md:hidden
+        // and CategoryNav is hidden md:block, so wherever it is visible the
+        // header is exactly the 64px row - the same 4rem AppLayout already
+        // hardcodes as `pt-16`. Stating it in CSS is also correct on the first
+        // render, which the measured version was not: headerHeight started at
+        // 0, briefly putting the drawer at top:0 with height:100vh.
         <div
             ref={drawerRef}
-            style={{
-                // Apply height ONLY on mobile (md:hidden handles visibility)
-                height: `calc(100vh - ${headerHeight}px)`,
-                top: `${headerHeight}px`,   
-            }}
             className={`
                 py-4 fixed left-0 w-full bg-white dark:bg-black
                 transition-transform duration-300 ease-in-out flex flex-col gap-2 overflow-y-scroll
                 z-[100]
+                top-16 h-[calc(100vh-4rem)]
                 md:hidden
                 ${headerDrawerOpen ? "translate-x-0" : "translate-x-full"}
                 md:relative md:translate-x-0 md:h-auto md:w-auto md:flex md:flex-row md:items-center
