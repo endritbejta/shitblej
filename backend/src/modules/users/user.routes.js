@@ -17,7 +17,7 @@ const {
 } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
 const { authLimiter } = require("../../middleware/rateLimit");
-const { upload } = require("../../config/cloudinary");
+const { upload } = require("../../config/upload");
 const {
   registerSchema,
   loginSchema,

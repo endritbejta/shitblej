@@ -1,39 +1,17 @@
-const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
-const config = require('./index');
+const cloudinary = require("cloudinary").v2;
+const config = require("./index");
 
-// Configure Cloudinary with your credentials
+// The Cloudinary SDK, configured. Nothing else - the multer middleware that
+// used to live here moved to ./upload.js, which picks a storage driver.
+//
+// Credentials are optional when UPLOAD_DRIVER=local (see config/index.js), in
+// which case the SDK is configured with undefined values and never called:
+// local image URLs do not match the Cloudinary URL shape, so the deletion
+// helpers skip them.
 cloudinary.config({
   cloud_name: config.cloudinary.cloudName,
   api_key: config.cloudinary.apiKey,
-  api_secret: config.cloudinary.apiSecret
+  api_secret: config.cloudinary.apiSecret,
 });
 
-// Configure storage. The engine is ours (see cloudinaryStorage.js) rather
-// than multer-storage-cloudinary, which pinned cloudinary 1.x as a peer and
-// was abandoned in 2022 - blocking the 2.x upgrade that fixes an
-// argument-injection advisory.
-const { CloudinaryStorage } = require('./cloudinaryStorage');
-
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'shitblej-products',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-    transformation: [
-      { width: 1200, height: 1200, crop: 'limit' },
-      { quality: 'auto' },
-      { fetch_format: 'auto' }
-    ]
-  }
-});
-
-// Create upload middleware
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max
-  }
-});
-
-module.exports = { upload, cloudinary };
+module.exports = { cloudinary };

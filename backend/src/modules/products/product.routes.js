@@ -17,7 +17,7 @@ const {
 const { protect } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
 const { publicRead } = require("../../middleware/cache");
-const { upload } = require("../../config/cloudinary");
+const { upload } = require("../../config/upload");
 const {
   createProductSchema,
   updateProductSchema,

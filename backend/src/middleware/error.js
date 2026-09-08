@@ -12,6 +12,14 @@ const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
+  // Spreading an Error copies only its own enumerable properties, and anything
+  // built on `http-errors` - body-parser, serve-static, much of Express -
+  // carries `statusCode` on the prototype instead. So it was lost here and
+  // every such error came back as a 500: an oversized request body reported a
+  // server fault (and woke someone) for a client mistake. `status` is the
+  // older spelling of the same field.
+  error.statusCode = err.statusCode || err.status;
+
   // One structured line, carrying the request id so this can be tied back to
   // the request that produced it and to everything else logged for it. The
   // previous version drew a box of coloured console.log in development and
@@ -20,7 +28,7 @@ const errorHandler = (err, req, res, next) => {
   //
   // The level distinguishes a client's mistake from ours: a 400 is the API
   // working as designed and should not page anyone, a 500 is a defect.
-  const status = err.statusCode || 500;
+  const status = error.statusCode || 500;
   const level = status >= 500 ? "error" : "warn";
 
   // `req.log` is the request-scoped child logger pino-http attaches; falling

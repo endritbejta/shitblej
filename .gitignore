@@ -58,3 +58,7 @@ frontend mobile/.metro-health-check*
 
 # TypeScript build info
 frontend mobile/*.tsbuildinfo
+
+# Locally-stored uploads (UPLOAD_DRIVER=local). User content, and disposable.
+.uploads/
+**/.uploads/
