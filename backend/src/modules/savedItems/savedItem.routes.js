@@ -7,7 +7,7 @@ const {
   deleteSavedItemByProduct,
 } = require("./savedItem.controller");
 
-const { protect, authorize } = require("../../middleware/auth");
+const { protect } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
 const {
   addSavedItemSchema,
@@ -22,7 +22,6 @@ router
   .get(protect, getSavedItems)
   .post(
     protect,
-    authorize("user", "admin"),
     validate(addSavedItemSchema),
     addSavedItem
   );
@@ -33,7 +32,6 @@ router
 router.delete(
   "/product/:productId",
   protect,
-  authorize("user", "admin"),
   validate(savedItemProductParamSchema),
   deleteSavedItemByProduct
 );
@@ -43,7 +41,6 @@ router
   .route("/:id")
   .delete(
     protect,
-    authorize("user", "admin"),
     validate(savedItemIdParamSchema),
     deleteSavedItem
   );

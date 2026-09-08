@@ -22,15 +22,6 @@ const OFFER_STATUS = Object.freeze({
   EXPIRED: "expired",
 });
 
-// Statuses from which no further negotiation on THIS document is possible.
-const TERMINAL_STATUSES = Object.freeze([
-  OFFER_STATUS.ACCEPTED,
-  OFFER_STATUS.DECLINED,
-  OFFER_STATUS.COUNTERED,
-  OFFER_STATUS.CANCELLED,
-  OFFER_STATUS.EXPIRED,
-]);
-
 // Buy Now is an offer at the asking price: one pipeline, and the seller must
 // consent to every sale - a buyer can never force an order into existence.
 const OFFER_TYPE = Object.freeze({
@@ -63,7 +54,6 @@ const OFFER_EVENTS = Object.freeze({
 
 module.exports = {
   OFFER_STATUS,
-  TERMINAL_STATUSES,
   OFFER_TYPE,
   OFFER_PARTY,
   OFFER_TTL_MS,

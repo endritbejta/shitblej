@@ -2,6 +2,7 @@ const request = require("supertest");
 const app = require("../src/app");
 const db = require("./helpers/db");
 const { createUser, createProduct } = require("./helpers/factories");
+const { eventually, eventuallyFindOne } = require("./helpers/eventually");
 const Product = require("../src/modules/products/product.model");
 const Offer = require("../src/modules/offers/offer.model");
 const Message = require("../src/modules/messages/message.model");
@@ -55,14 +56,17 @@ describe("POST /api/v1/offers (make offer / buy now)", () => {
     // The product is NOT reserved by a mere proposal
     expect((await Product.findById(product._id)).status).toBe("available");
 
-    // Offer card in the conversation
-    const msg = await Message.findOne({ offer: offer._id });
+    // Offer card in the conversation. Written by a subscriber after the
+    // response, so wait for it rather than racing it.
+    const msg = await eventuallyFindOne(Message, { offer: offer._id });
     expect(msg).not.toBeNull();
     expect(msg.type).toBe("offer");
     expect(String(msg.receiver)).toBe(String(seller.user._id));
 
     // Persisted notification for the seller
-    const notif = await Notification.findOne({ recipient: seller.user._id });
+    const notif = await eventuallyFindOne(Notification, {
+      recipient: seller.user._id,
+    });
     expect(notif).not.toBeNull();
     expect(notif.type).toBe("offer.received");
     expect(notif.data.amountCents).toBe(2000);
@@ -171,7 +175,7 @@ describe("negotiation: counter chains", () => {
   });
 
   it("only the recipient of the current proposal can respond", async () => {
-    const { seller, buyer, product } = await setup();
+    const { buyer, product } = await setup();
     const offer = (
       await makeOffer({
         actor: buyer,
@@ -239,7 +243,7 @@ describe("acceptance: agreement reserves the item", () => {
 
     // The rival's offer died with it, and the rival was told
     expect((await Offer.findById(rival._id)).status).toBe("declined");
-    const superseded = await Notification.findOne({
+    const superseded = await eventuallyFindOne(Notification, {
       recipient: rivalBuyer.user._id,
       type: "offer.superseded",
     });
@@ -276,7 +280,7 @@ describe("acceptance: agreement reserves the item", () => {
     expect(res.status).toBe(200);
     expect((await Product.findById(product._id)).status).toBe("available");
 
-    const notif = await Notification.findOne({
+    const notif = await eventuallyFindOne(Notification, {
       recipient: buyer.user._id,
       type: "offer.declined",
     });
@@ -342,11 +346,19 @@ describe("listing deletion during negotiation", () => {
       .set("Authorization", `Bearer ${seller.token}`);
     expect(del.status).toBe(200);
 
-    // Event handling is async fire-and-forget; give it a tick
-    await new Promise((r) => setTimeout(r, 50));
+    // Cancelling the live offers and notifying their buyers is fire-and-forget
+    // (a PRODUCT_EVENTS.DELETED subscriber), so wait for the end state rather
+    // than guessing at a delay.
+    const cancelled = await eventually(
+      async () => {
+        const found = await Offer.findById(offer._id);
+        return found && found.status === "cancelled" ? found : null;
+      },
+      { label: "offer cancelled by listing deletion" }
+    );
+    expect(cancelled.status).toBe("cancelled");
 
-    expect((await Offer.findById(offer._id)).status).toBe("cancelled");
-    const notif = await Notification.findOne({
+    const notif = await eventuallyFindOne(Notification, {
       recipient: buyer.user._id,
       type: "offer.cancelled",
     });

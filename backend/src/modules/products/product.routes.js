@@ -9,7 +9,12 @@ const {
   searchProducts,
 } = require("./product.controller");
 
-const { protect, authorize } = require("../../middleware/auth");
+// No role check here on purpose: the role enum is ["user", "admin"], so
+// authorize("user", "admin") admitted everyone - a middleware that read like
+// an access control while enforcing nothing. Ownership is the actual control
+// and it is enforced in product.service.js, which compares product.user to
+// the caller and exempts admins.
+const { protect } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
 const { upload } = require("../../config/cloudinary");
 const {
@@ -29,7 +34,6 @@ router
   .get(getProducts)
   .post(
     protect,
-    authorize("user", "admin"),
     // multer runs before validation so multipart fields exist on req.body
     upload.array("images", 5),
     validate(createProductSchema),
@@ -44,13 +48,11 @@ router
   .get(validate(productIdParamSchema), getProduct)
   .put(
     protect,
-    authorize("user", "admin"),
     validate(updateProductSchema),
     updateProduct
   )
   .delete(
     protect,
-    authorize("user", "admin"),
     validate(productIdParamSchema),
     deleteProduct
   );

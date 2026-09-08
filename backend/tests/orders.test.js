@@ -8,6 +8,7 @@ const {
   checkoutOrder,
   ADDRESS,
 } = require("./helpers/factories");
+const { eventuallyFindOne } = require("./helpers/eventually");
 const Product = require("../src/modules/products/product.model");
 const Offer = require("../src/modules/offers/offer.model");
 const Notification = require("../src/modules/notifications/notification.model");
@@ -71,7 +72,7 @@ describe("POST /api/v1/orders (checkout)", () => {
     expect(String((await Offer.findById(offer._id)).order)).toBe(order._id);
 
     // The seller is notified the order exists
-    const notif = await Notification.findOne({
+    const notif = await eventuallyFindOne(Notification, {
       recipient: seller.user._id,
       type: "order.created",
     });
@@ -90,7 +91,7 @@ describe("POST /api/v1/orders (checkout)", () => {
   });
 
   it("rejects checkout without an accepted offer - there is no bypass path", async () => {
-    const { seller, buyer, product } = await setup();
+    const { buyer, product } = await setup();
 
     // A pending (unaccepted) offer cannot be checked out
     const pending = await request(app)
@@ -201,7 +202,7 @@ describe("order lifecycle (post-agreement)", () => {
     expect(shipped.body.data.shipment.trackingNumber).toBe("PK123456");
 
     // Buyer got a shipment notification
-    const shipNotif = await Notification.findOne({
+    const shipNotif = await eventuallyFindOne(Notification, {
       recipient: buyer.user._id,
       type: "order.shipped",
     });
@@ -216,7 +217,7 @@ describe("order lifecycle (post-agreement)", () => {
     expect(delivered.body.data.paymentStatus).toBe("paid");
     expect((await Product.findById(product._id)).status).toBe("sold");
 
-    const deliveredNotif = await Notification.findOne({
+    const deliveredNotif = await eventuallyFindOne(Notification, {
       recipient: seller.user._id,
       type: "order.delivered",
     });
