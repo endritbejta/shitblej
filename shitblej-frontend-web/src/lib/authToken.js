@@ -11,6 +11,7 @@
 // blank page.
 
 const KEY = "token";
+const USER_KEY = "user";
 
 export function getToken() {
   try {
@@ -36,10 +37,54 @@ export function setToken(token, { remember = true } = {}) {
   }
 }
 
-export function clearToken() {
+// The last known profile for the signed-in user.
+//
+// Why persist it: the app cannot tell whether someone is signed in without
+// asking the API, and that round-trip used to block the entire first paint.
+// Hydrating from this cache lets the app render the correct chrome
+// immediately and revalidate in the background, so a slow or cold backend
+// costs nothing visible.
+//
+// This is the user's own profile, on their own device, sitting next to a token
+// that already grants full access to it - so caching it exposes nothing new.
+// It is cleared with the token whenever a session ends.
+export function getCachedUser() {
+  try {
+    const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Anything without an id is unusable; treat it as absent rather than
+    // handing components a half-object.
+    return parsed && parsed._id ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedUser(user) {
+  try {
+    // Follow the token: whichever store holds it should hold the profile, so
+    // "remember me" off means the profile dies with the tab too.
+    const store = localStorage.getItem(KEY) ? localStorage : sessionStorage;
+    if (user) {
+      store.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(USER_KEY);
+    }
+  } catch {
+    /* storage blocked - hydration simply will not happen next load */
+  }
+}
+
+// End a session's stored state: the token AND the cached profile. Clearing one
+// without the other would leave the app hydrating a user it cannot authenticate.
+export function clearSession() {
   try {
     localStorage.removeItem(KEY);
     sessionStorage.removeItem(KEY);
+    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(USER_KEY);
   } catch {
     /* nothing to clear */
   }
