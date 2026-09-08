@@ -24,7 +24,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 (current LTS), not 20: Vite 7 requires ^20.19 || >=22.12, and
+          # jsdom's undici reads markAsUncloneable off node:worker_threads,
+          # which only exists from 20.18/22.0 - on an older 20.x it is
+          # undefined and the test run dies starting its worker.
+          node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
@@ -38,7 +42,7 @@ jobs:
       - run: npm test
 
   web:
-    name: Web (lint + build)
+    name: Web (lint + tests + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -49,7 +53,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 (current LTS), not 20: Vite 7 requires ^20.19 || >=22.12, and
+          # jsdom's undici reads markAsUncloneable off node:worker_threads,
+          # which only exists from 20.18/22.0 - on an older 20.x it is
+          # undefined and the test run dies starting its worker.
+          node-version: 22
           cache: npm
           cache-dependency-path: shitblej-frontend-web/package-lock.json
 
@@ -57,6 +65,15 @@ jobs:
 
       - run: npm run lint
 
-      # No test suite on the web app yet, so the build is the check: it catches
-      # broken imports and syntax errors that lint alone misses.
+      - run: npm test
+
+      # The build is also a check in its own right: it catches broken imports
+      # and syntax errors that lint alone misses.
+      #
+      # VITE_API_URL is required by the build (src/lib/config.js is inlined at
+      # build time, and a build without an API origin can only produce an
+      # artifact that 404s). CI is not deploying, so a placeholder is correct
+      # here - the real origin is set on the deploy target.
       - run: npm run build
+        env:
+          VITE_API_URL: https://api.invalid

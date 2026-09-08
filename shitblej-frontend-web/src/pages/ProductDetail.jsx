@@ -45,7 +45,7 @@ export default function ProductDetail() {
                 const data = await getProductById(id);
                 setProduct(data.data || data);
             } catch (err) {
-                console.error(err);
+                if (import.meta.env.DEV) console.error(err);
                 setError("Failed to load product.");
             } finally {
                 setLoading(false);

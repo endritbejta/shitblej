@@ -3,6 +3,18 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  # Inlined into the client bundle at build time (see
+  # shitblej-frontend-web/src/lib/config.js), which also means it is readable
+  # in the shipped JavaScript - it is configuration, not a secret. Keeping it
+  # here rather than in the Netlify UI makes a deploy reproducible from the
+  # repo alone, and the build refuses to run without it.
+  VITE_API_URL = "https://shitblej.onrender.com"
+
+  # Match CI (.github/workflows/ci.yml). Vite 7 requires ^20.19 || >=22.12,
+  # and jsdom's undici needs >=20.18 for node:worker_threads.markAsUncloneable.
+  NODE_VERSION = "22"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
