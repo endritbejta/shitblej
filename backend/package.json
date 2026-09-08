@@ -16,7 +16,10 @@
     "setupFiles": [
       "<rootDir>/tests/setup.js"
     ],
-    "testTimeout": 30000
+    "testTimeout": 30000,
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setupServer.js"
+    ]
   },
   "author": "Endrit Bejta",
   "license": "MIT",
