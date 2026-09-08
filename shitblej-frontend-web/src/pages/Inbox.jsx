@@ -103,10 +103,10 @@ export default function Inbox() {
                Keying by conversation id forced a full unmount/remount on
                every switch, which threw away all of ChatWindow's local
                state - including each SmartImage's "already loaded" flag. So
-               the avatar and offer thumbnails blanked to a shimmering grey
-               box and faded back in over half a second on every switch, even
-               though the images were already in the browser cache. That was
-               the flash that survived moving the thread onto the query cache.
+               the avatar and offer thumbnails blanked out and faded back in
+               over half a second on every switch, even though the images were
+               already in the browser cache. That was the flash that survived
+               moving the thread onto the query cache.
 
                ChatWindow re-arms itself per conversation instead (see its
                scroll effect and the reset below), so the remount bought
