@@ -34,6 +34,14 @@ jobs:
 
       - run: npm ci
 
+      # Fails the build on a known high-severity advisory in a dependency.
+      # This repo carried 22 of them - including an improperly-verified HMAC in
+      # the JWT chain, a Mongoose $nor sanitization bypass and a critical
+      # prototype pollution - with nothing reporting it. Scoped to high and
+      # above so a moderate advisory in a dev tool does not block a release;
+      # `npm audit` locally shows the full picture.
+      - run: npm audit --audit-level=high
+
       - run: npm run lint
 
       # The suite boots its own in-memory MongoDB (tests/globalSetup.js), so no
@@ -62,6 +70,14 @@ jobs:
           cache-dependency-path: shitblej-frontend-web/package-lock.json
 
       - run: npm ci
+
+      # Fails the build on a known high-severity advisory in a dependency.
+      # This repo carried 22 of them - including an improperly-verified HMAC in
+      # the JWT chain, a Mongoose $nor sanitization bypass and a critical
+      # prototype pollution - with nothing reporting it. Scoped to high and
+      # above so a moderate advisory in a dev tool does not block a release;
+      # `npm audit` locally shows the full picture.
+      - run: npm audit --audit-level=high
 
       - run: npm run lint
 
