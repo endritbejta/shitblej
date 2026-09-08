@@ -1,5 +1,4 @@
 const express = require("express");
-const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
 
@@ -8,6 +7,8 @@ const errorHandler = require("./middleware/error");
 const cleanupUploads = require("./middleware/cleanupUploads");
 const { apiLimiter } = require("./middleware/rateLimit");
 const { noStore } = require("./middleware/cache");
+const requestLog = require("./middleware/requestLog");
+const healthRoutes = require("./routes/health");
 const apiRoutes = require("./routes");
 
 // Cross-module event subscribers. Registered at app build so every entry
@@ -26,8 +27,11 @@ if (config.trustProxyHops > 0) {
   app.set("trust proxy", config.trustProxyHops);
 }
 
-// Security headers first, so they are present on every response including
-// errors and 404s.
+// Before everything else, so a request rejected by CORS, the body parser or
+// the rate limiter is still logged and still carries a correlation id.
+app.use(requestLog);
+
+// Security headers, present on every response including errors and 404s.
 app.use(helmet());
 
 // CORS must come before the routes.
@@ -43,15 +47,9 @@ app.use(
 // limit is only useful to someone trying to exhaust memory.
 app.use(express.json({ limit: "32kb" }));
 
-// Request logging (dev only — silent in production and tests)
-if (config.isDev) {
-  app.use(morgan("dev"));
-}
-
-// Health check
-app.get("/health", (req, res) => {
-  res.status(200).json({ success: true, status: "ok", env: config.env });
-});
+// Liveness and readiness. Mounted outside /api/v1 and ahead of the rate
+// limiter so a probe never consumes a client's quota or gets throttled.
+app.use(healthRoutes);
 
 // Mount all feature modules under the versioned API prefix. The blanket
 // limiter sits here rather than on the app so /health stays reachable for

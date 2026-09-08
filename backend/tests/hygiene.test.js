@@ -4,6 +4,7 @@ const ioClient = require("socket.io-client");
 const db = require("./helpers/db");
 const { createUser, createProduct } = require("./helpers/factories");
 const domainEvents = require("../src/shared/events/domainEvents");
+const logger = require("../src/shared/logger");
 const registerMessageSocket = require("../src/sockets/message.socket");
 const Product = require("../src/modules/products/product.model");
 const Notification = require("../src/modules/notifications/notification.model");
@@ -18,7 +19,7 @@ describe("the domain event bus contains handler failures", () => {
   afterEach(() => domainEvents.removeAllListeners(EVENT));
 
   it("contains a synchronous throw", () => {
-    const errorLog = jest.spyOn(console, "error").mockImplementation(() => {});
+    const errorLog = jest.spyOn(logger, "error").mockImplementation(() => {});
     const after = jest.fn();
 
     domainEvents.on(EVENT, () => {
@@ -29,13 +30,15 @@ describe("the domain event bus contains handler failures", () => {
     expect(() => domainEvents.publish(EVENT, {})).not.toThrow();
     // A broken listener must not stop the ones registered after it.
     expect(after).toHaveBeenCalledTimes(1);
+    // Contained AND reported - swallowing it silently would hide a broken
+    // subscriber just as effectively as crashing would.
     expect(errorLog).toHaveBeenCalled();
 
     errorLog.mockRestore();
   });
 
   it("contains an async rejection", async () => {
-    const errorLog = jest.spyOn(console, "error").mockImplementation(() => {});
+    const errorLog = jest.spyOn(logger, "error").mockImplementation(() => {});
     const unhandled = jest.fn();
     process.on("unhandledRejection", unhandled);
 

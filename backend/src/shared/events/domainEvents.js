@@ -1,4 +1,5 @@
 const { EventEmitter } = require("events");
+const logger = require("../logger");
 
 // In-process domain event bus.
 //
@@ -32,17 +33,11 @@ class DomainEventBus extends EventEmitter {
         const result = listener(payload);
         if (result && typeof result.then === "function") {
           result.catch((err) => {
-            console.error(
-              `Domain event handler failed for "${eventName}":`,
-              err && err.message
-            );
+            logger.error({ err, event: eventName }, "domain event handler rejected");
           });
         }
       } catch (err) {
-        console.error(
-          `Domain event handler failed for "${eventName}":`,
-          err && err.message
-        );
+        logger.error({ err, event: eventName }, "domain event handler threw");
       }
     }
   }

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const logger = require("../shared/logger");
 
 // A rate-limit counter store backed by MongoDB.
 //
@@ -82,7 +83,7 @@ class MongoRateLimitStore {
       // going to fail at the data layer anyway - login cannot verify a
       // password without it - so refusing traffic here would turn a database
       // blip into a hard outage while protecting nothing.
-      console.error("Rate limit store unavailable, allowing request:", err.message);
+      logger.error({ err }, "rate limit store unavailable - allowing request");
       return { totalHits: 1, resetTime: new Date(Date.now() + this.windowMs) };
     }
   }

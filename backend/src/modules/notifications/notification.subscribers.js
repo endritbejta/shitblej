@@ -1,5 +1,6 @@
 const domainEvents = require("../../shared/events/domainEvents");
 const notificationService = require("./notification.service");
+const logger = require("../../shared/logger");
 const { OFFER_EVENTS } = require("../offers/offer.constants");
 const { ORDER_EVENTS } = require("../orders/order.constants");
 
@@ -11,9 +12,7 @@ const { ORDER_EVENTS } = require("../orders/order.constants");
 const notify = (recipient, type, data) =>
   notificationService
     .createNotification({ recipient, type, data })
-    .catch((err) =>
-      console.error(`Failed to create notification "${type}":`, err.message)
-    );
+    .catch((err) => logger.error({ err, type, recipient }, "failed to create notification"));
 
 const offerData = (payload) => ({
   offerId: payload.offerId,

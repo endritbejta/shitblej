@@ -3,6 +3,7 @@ const config = require("../config");
 const User = require("../modules/users/user.model");
 const messageService = require("../modules/messages/message.service");
 const { sendMessageSchema } = require("../modules/messages/message.validation");
+const logger = require("../shared/logger");
 
 // Pull a JWT out of the Socket.io handshake. Clients should connect with:
 //   io(URL, { auth: { token } })
@@ -68,7 +69,7 @@ const registerMessageSocket = (io) => {
     // Each user automatically joins a room named after their own id, so we can
     // target them with io.to(userId).
     socket.join(socket.userId);
-    console.log(`Socket connected: user ${socket.userId}`);
+    logger.debug({ userId: socket.userId, socketId: socket.id }, "socket connected");
 
     socket.on("sendMessage", async (data = {}) => {
       if (!withinSendBudget(socket)) {
@@ -111,7 +112,7 @@ const registerMessageSocket = (io) => {
     });
 
     socket.on("disconnect", () => {
-      console.log(`Socket disconnected: user ${socket.userId}`);
+      logger.debug({ userId: socket.userId, socketId: socket.id }, "socket disconnected");
     });
   });
 };

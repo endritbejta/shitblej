@@ -1,4 +1,5 @@
 const { cloudinary } = require("../../config/cloudinary");
+const logger = require("../logger");
 
 // Cloudinary asset cleanup.
 //
@@ -49,9 +50,13 @@ const destroyAssets = async (publicIds) => {
 
   const failed = results.filter((r) => r.status === "rejected");
   if (failed.length > 0) {
-    console.error(
-      `Cloudinary cleanup: ${failed.length}/${ids.length} asset(s) not deleted:`,
-      failed.map((r) => r.reason && r.reason.message).join("; ")
+    logger.error(
+      {
+        failed: failed.length,
+        total: ids.length,
+        reasons: failed.map((r) => r.reason && r.reason.message),
+      },
+      "cloudinary cleanup left orphaned assets"
     );
   }
 

@@ -1,5 +1,6 @@
 const config = require("../config");
 const offerService = require("../modules/offers/offer.service");
+const logger = require("../shared/logger");
 
 // Background maintenance.
 //
@@ -26,13 +27,17 @@ const runSweep = async () => {
   try {
     const result = await offerService.expireOffers();
     if (result.expiredPending > 0 || result.expiredAgreements > 0) {
-      console.log(
-        `Offer sweep: expired ${result.expiredPending} pending, released ${result.expiredAgreements} stale agreement(s)`
+      logger.info(
+        {
+          expiredPending: result.expiredPending,
+          releasedAgreements: result.expiredAgreements,
+        },
+        "offer sweep released stranded inventory"
       );
     }
     return result;
   } catch (err) {
-    console.error("Offer sweep failed:", err.message);
+    logger.error({ err }, "offer sweep failed");
     return null;
   } finally {
     running = false;

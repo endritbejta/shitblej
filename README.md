@@ -109,7 +109,24 @@ Start the API:
 npm run dev
 ```
 
-The API is available at `http://localhost:3000/api/v1`. Its health endpoint is `http://localhost:3000/health`.
+The API is available at `http://localhost:3000/api/v1`.
+
+Two probes, answering different questions:
+
+| Endpoint | Question | Checks |
+| --- | --- | --- |
+| `GET /health` | Is the process alive? | Nothing external. A liveness probe that fails on a database blip gets the container restarted, which does not fix a database. |
+| `GET /health/ready` | Should this instance be sent traffic? | Pings MongoDB and answers `503` when it cannot be reached, so a load balancer routes around the instance instead of requests failing one at a time. |
+
+Logs are newline-delimited JSON (pretty-printed in development). Every request
+carries an `X-Request-Id`, echoed back on the response and attached to every
+log line for that request - including the error line - so a report can be
+traced to its cause. An inbound `X-Request-Id` is adopted when it is
+id-shaped, so a request keeps one identity across a proxy.
+
+Authorization headers, cookies and anything named like a password or token are
+redacted by the logger itself, so no call site can write a credential into a
+log.
 
 ### 2. Web application
 

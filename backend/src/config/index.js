@@ -46,6 +46,13 @@ const envSchema = z.object({
     .positive()
     .default(5 * 60 * 1000),
 
+  // trace | debug | info | warn | error | fatal | silent.
+  // Defaults per environment below: quiet in tests so the suite's own output
+  // stays readable, info elsewhere.
+  LOG_LEVEL: z
+    .enum(["trace", "debug", "info", "warn", "error", "fatal", "silent"])
+    .optional(),
+
   // How long to keep notifications before MongoDB expires them. They are
   // write-once render-data (see notification.model.js), not domain state, so
   // they would otherwise grow without bound. 0 disables expiry entirely.
@@ -58,6 +65,9 @@ if (!parsed.success) {
   const issues = parsed.error.issues
     .map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`)
     .join("\n");
+  // console, not the logger, and deliberately: the logger reads its level
+  // from this module, so it cannot exist yet. This is the one place in the
+  // codebase where console is the correct call.
   console.error(
     `\nInvalid environment configuration:\n${issues}\n\n` +
       "Check your .env file against .env.example.\n"
@@ -100,6 +110,10 @@ const config = Object.freeze({
 
   notifications: {
     ttlDays: env.NOTIFICATION_TTL_DAYS,
+  },
+
+  log: {
+    level: env.LOG_LEVEL || (env.NODE_ENV === "test" ? "silent" : "info"),
   },
 
   jwt: {
