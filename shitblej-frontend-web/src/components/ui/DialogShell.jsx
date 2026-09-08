@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 /**
  * Minimal modal scaffolding shared by the offer dialogs: portal, backdrop,
@@ -8,6 +9,13 @@ import { X } from "lucide-react";
  * sheet that becomes a centered card on sm+.
  */
 export default function DialogShell({ title, subtitle, busy = false, onClose, children, label }) {
+  const dialogRef = useRef(null);
+
+  // `aria-modal` below tells a screen reader the page behind is inert; it does
+  // not make Tab respect that. Without this, focus walked out of the dialog
+  // into controls the user could not see.
+  useFocusTrap(dialogRef, true);
+
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && !busy && onClose();
     window.addEventListener("keydown", onKey);
@@ -20,7 +28,14 @@ export default function DialogShell({ title, subtitle, busy = false, onClose, ch
   }, [onClose, busy]);
 
   return createPortal(
-    <div className="fixed inset-0 z-[110]" role="dialog" aria-modal="true" aria-label={label || title}>
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-[110]"
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-label={label || title}
+    >
       <button
         aria-label="Close"
         onClick={() => !busy && onClose()}

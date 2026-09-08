@@ -51,8 +51,3 @@ export async function cancelOffer(offerId) {
     return data.data;
 }
 
-// Full negotiation chain for an offer, oldest first.
-export async function getNegotiation(offerId) {
-    const { data } = await client.get(`/offers/${offerId}/negotiation`);
-    return data.data || [];
-}

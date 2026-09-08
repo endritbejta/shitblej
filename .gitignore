@@ -32,32 +32,15 @@ node_modules/
 Thumbs.db
 **/Thumbs.db
 
-# Expo and Web build directories
-frontend mobile/.expo/
+# Build directories
 **/dist/
 **/dist-ssr/
-frontend mobile/web-build/
-frontend mobile/expo-env.d.ts
-
-# Native builds & keystores
-frontend mobile/*.orig.*
-frontend mobile/*.jks
-frontend mobile/*.p8
-frontend mobile/*.p12
-frontend mobile/*.key
-frontend mobile/*.mobileprovision
-
-# Metro health checks
-frontend mobile/.metro-health-check*
 
 # Debug logs
 *.log
 **/npm-debug.log*
 **/yarn-debug.log*
 **/yarn-error.log*
-
-# TypeScript build info
-frontend mobile/*.tsbuildinfo
 
 # Locally-stored uploads (UPLOAD_DRIVER=local). User content, and disposable.
 .uploads/

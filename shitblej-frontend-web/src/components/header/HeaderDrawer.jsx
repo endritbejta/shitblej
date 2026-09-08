@@ -38,14 +38,11 @@ const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen, headerHeight }) =
                 top: `${headerHeight}px`,   
             }}
             className={`
-                header-drawer py-4 fixed left-0 w-full bg-white dark:bg-black
+                py-4 fixed left-0 w-full bg-white dark:bg-black
                 transition-transform duration-300 ease-in-out flex flex-col gap-2 overflow-y-scroll
                 z-[100]
                 md:hidden
-                /* Mobile drawer sliding */
                 ${headerDrawerOpen ? "translate-x-0" : "translate-x-full"}
-
-                /* Desktop override */
                 md:relative md:translate-x-0 md:h-auto md:w-auto md:flex md:flex-row md:items-center
             `}
         >

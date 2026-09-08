@@ -9,9 +9,12 @@ import { QueryClient } from "@tanstack/react-query";
  * identical content. A cache makes the second visit instant and moves the
  * refetch behind the already-rendered content.
  *
- * Only the chat is on this so far. The remaining fetch sites (product detail,
- * home rails, search, collections, wishlist, profile) still hand-roll
- * fetch-in-useEffect and can move over one at a time.
+ * Every read is on it now except WishlistContext, which is deliberately not a
+ * cache: it is a hybrid store that keeps a guest's saves in localStorage,
+ * treats the server as the source of truth once signed in, merges the two on
+ * login and reverts failed optimistic toggles. Those are store semantics, not
+ * caching, and rewriting them against a query cache would be risk without
+ * gain.
  */
 
 // Retrying an authorization failure is pointless - the answer will not change -
@@ -58,4 +61,12 @@ export const queryClient = new QueryClient({ defaultOptions: defaultQueryOptions
 export const queryKeys = {
   conversations: ["conversations"],
   thread: (partnerId) => ["messages", String(partnerId)],
+
+  // Product reads share a "products" prefix so one invalidation after a
+  // listing changes can reach the home rails, a category and a search at once:
+  //   queryClient.invalidateQueries({ queryKey: ["products"] })
+  products: (params = {}) => ["products", params],
+  product: (id) => ["products", "detail", String(id)],
+  productSearch: (term) => ["products", "search", term],
+  sellerProducts: (userId) => ["products", "seller", String(userId)],
 };

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
 import { searchProducts } from "../api/products";
+import { queryKeys } from "../lib/queryClient";
 import ProductBrowser from "../components/collection/ProductBrowser";
 import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
@@ -11,31 +12,16 @@ export default function SearchResults() {
   const [params] = useSearchParams();
   const query = (params.get("q") || "").trim();
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!query) {
-      setProducts([]);
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await searchProducts(query);
-        if (!cancelled) setProducts(data);
-      } catch {
-        if (!cancelled) setProducts([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [query]);
+  // Keyed on the term, so going back to a previous search is instant and a
+  // repeated one costs nothing.
+  const { data: products = [], isPending } = useQuery({
+    queryKey: queryKeys.productSearch(query),
+    queryFn: () => searchProducts(query),
+    enabled: Boolean(query),
+  });
+
+  const loading = Boolean(query) && isPending;
 
   if (!query) {
     return (

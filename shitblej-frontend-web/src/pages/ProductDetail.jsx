@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getProductById } from "../api/products";
+import { queryKeys } from "../lib/queryClient";
 import { useAuth } from "../context/AuthContext";
 import Header from "../layouts/Header";
 import Footer from "../layouts/Footer";
@@ -19,9 +21,6 @@ export default function ProductDetail() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [activeImage, setActiveImage] = useState(0);
 
     // Negotiation dialogs (offer / buy-now, both via the offers API)
@@ -38,22 +37,18 @@ export default function ProductDetail() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    useEffect(() => {
-        async function fetchProduct() {
-            try {
-                setLoading(true);
-                const data = await getProductById(id);
-                setProduct(data.data || data);
-            } catch (err) {
-                if (import.meta.env.DEV) console.error(err);
-                setError("Failed to load product.");
-            } finally {
-                setLoading(false);
-            }
-        }
+    // Cached per product, so coming back from the offer flow or the seller's
+    // profile does not refetch and re-flash the page.
+    const { data: product, isPending: loading, isError } = useQuery({
+        queryKey: queryKeys.product(id),
+        queryFn: async () => {
+            const data = await getProductById(id);
+            // The endpoint has been seen returning both shapes.
+            return data.data || data;
+        },
+    });
 
-        fetchProduct();
-    }, [id]);
+    const error = isError ? "Failed to load product." : null;
 
     const handleBuyNow = () => {
         if (!user) {
