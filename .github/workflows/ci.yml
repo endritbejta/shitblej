@@ -24,7 +24,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 (current LTS), not 20: Vite 7 requires ^20.19 || >=22.12, and
+          # jsdom's undici reads markAsUncloneable off node:worker_threads,
+          # which only exists from 20.18/22.0 - on an older 20.x it is
+          # undefined and the test run dies starting its worker.
+          node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
@@ -49,7 +53,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 (current LTS), not 20: Vite 7 requires ^20.19 || >=22.12, and
+          # jsdom's undici reads markAsUncloneable off node:worker_threads,
+          # which only exists from 20.18/22.0 - on an older 20.x it is
+          # undefined and the test run dies starting its worker.
+          node-version: 22
           cache: npm
           cache-dependency-path: shitblej-frontend-web/package-lock.json
 
