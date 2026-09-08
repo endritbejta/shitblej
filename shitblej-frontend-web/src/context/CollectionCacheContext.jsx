@@ -15,7 +15,6 @@ export function CollectionCacheProvider({ children }) {
     const getCollectionProducts = useCallback(async (categoryId, options = {}) => {
         // Check if we have cached data for this category
         if (cache[categoryId]) {
-            console.log(`Using cached data for category: ${categoryId}`);
             return {
                 products: cache[categoryId].products,
                 fromCache: true
@@ -25,8 +24,7 @@ export function CollectionCacheProvider({ children }) {
         // If not in cache, fetch from API
         try {
             setLoadingStates(prev => ({ ...prev, [categoryId]: true }));
-            console.log(`Fetching fresh data for category: ${categoryId}`);
-            
+
             const products = await getProducts({ 
                 category: categoryId, 
                 limit: options.limit || 20 
@@ -46,7 +44,11 @@ export function CollectionCacheProvider({ children }) {
                 fromCache: false
             };
         } catch (error) {
-            console.error(`Error fetching products for category ${categoryId}:`, error);
+            // Rethrown for the caller to render; logged only in dev so the
+            // production console stays free of routine chatter.
+            if (import.meta.env.DEV) {
+                console.error(`Error fetching products for category ${categoryId}:`, error);
+            }
             throw error;
         } finally {
             setLoadingStates(prev => ({ ...prev, [categoryId]: false }));

@@ -9,7 +9,6 @@ export async function login(email, password) {
 }
 
 export async function signup(username, email, password) {
-    // ... mock mode check ...
     const { data } = await client.post("/users/register", { 
         name: username, // Backend expects 'name', not 'username'
         email, 
@@ -33,7 +32,9 @@ export async function getCurrentUser() {
         const { id } = JSON.parse(jsonPayload);
         return await getUserById(id);
     } catch (error) {
-        console.error("Failed to fetch current user:", error);
+        if (import.meta.env.DEV) {
+            console.error("Failed to fetch current user:", error);
+        }
         throw error;
     }
 }
