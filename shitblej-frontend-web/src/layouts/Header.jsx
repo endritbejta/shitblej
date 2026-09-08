@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, Mail, Plus, User, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -11,8 +11,7 @@ import Container from "../components/ui/Container";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { cn } from "../utils/cn";
-import logoBlack from "../assets/shitblej.png"; // dark text — for light theme
-import logoWhite from "../assets/shitblej-white.png"; // white text — for dark theme
+import BrandMark from "../components/ui/BrandMark";
 
 const iconLink =
   "relative grid h-10 w-10 place-items-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-brand-400";
@@ -21,14 +20,23 @@ const Header = () => {
   const { t } = useTranslation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const headerRef = useRef(null);
   const { user } = useAuth();
   const { count } = useWishlist();
 
-  useEffect(() => {
-    if (headerRef.current) setHeaderHeight(headerRef.current.offsetHeight);
-  }, []);
+  // There used to be a `headerHeight` measurement here: read
+  // headerRef.current.offsetHeight in an effect, then setState with it. That
+  // was the forced reflow Lighthouse reported - a synchronous layout during
+  // React's commit phase followed by a second render and layout pass, on every
+  // page mount, and it showed up in a trace as the top JS frame of a Layout
+  // event.
+  //
+  // It was also unnecessary. The value only positioned HeaderDrawer, the
+  // drawer is md:hidden, and CategoryNav is hidden md:block - so whenever the
+  // drawer can be seen the header is exactly the 64px row. AppLayout already
+  // states that as `pt-16 md:pt-[104px]`, so the drawer now uses the matching
+  // CSS values instead of measuring. That also removes a latent bug: on the
+  // first render the measured height was still 0, so the drawer was briefly
+  // positioned at top:0 with height:100vh.
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -57,7 +65,6 @@ const Header = () => {
 
   return (
     <header
-      ref={headerRef}
       className={cn(
         "fixed inset-x-0 top-0 z-50 border-b bg-white/80 backdrop-blur-xl transition-all duration-300 dark:bg-black/70",
         scrolled ? "border-gray-200 shadow-sm dark:border-zinc-800" : "border-transparent"
@@ -70,9 +77,9 @@ const Header = () => {
             aria-label="Shitblej — home"
             className="shrink-0 transition-opacity hover:opacity-80"
           >
-            {/* Logo swaps with the OS theme (media-based dark mode) */}
-            <img src={logoBlack} alt="Shitblej" className="h-6 w-auto dark:hidden" />
-            <img src={logoWhite} alt="Shitblej" className="hidden h-6 w-auto dark:block" />
+            {/* One download, theme-aware, correctly sized - see
+                components/ui/BrandMark.jsx. */}
+            <BrandMark className="h-6" />
           </Link>
 
           {/* Primary, width-filling search (desktop) */}
@@ -129,7 +136,6 @@ const Header = () => {
       <HeaderDrawer
         headerDrawerOpen={drawerOpen}
         setHeaderDrawerOpen={setDrawerOpen}
-        headerHeight={headerHeight}
       />
     </header>
   );

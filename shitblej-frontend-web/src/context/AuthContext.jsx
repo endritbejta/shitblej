@@ -8,7 +8,11 @@ import {
     setCachedUser,
     setToken,
 } from '../lib/authToken';
-import { disconnectSocket } from '../lib/socket';
+// ../lib/socketHandle, NOT ../lib/socket: this provider is in the entry bundle,
+// and importing the socket factory here dragged socket.io-client and engine.io
+// into it - downloaded, parsed and executed before the first paint of every
+// page, for a feature only the inbox uses. The handle module imports nothing.
+import { disconnectSocket } from '../lib/socketHandle';
 
 const AuthContext = createContext();
 

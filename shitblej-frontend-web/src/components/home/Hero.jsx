@@ -1,5 +1,12 @@
 import { Link } from "react-router-dom";
 import { CATEGORIES } from "../../constants";
+import {
+  HERO_HEIGHT,
+  HERO_SIZES,
+  HERO_SRC,
+  HERO_SRCSET,
+  HERO_WIDTH,
+} from "../../lib/heroImage";
 
 const QUICK = ["designer-items", "electronics", "sport", "hobby-collector", "home"];
 
@@ -15,8 +22,26 @@ export default function Hero() {
     <section className="full-bleed relative overflow-hidden bg-gray-950 text-white">
       {/* Background */}
       <div className="absolute inset-0">
+        {/* The LCP element. See lib/heroImage.js - the same descriptor drives
+            the <link rel="preload"> that vite.config.js writes into
+            index.html, so the browser starts this download from the initial
+            document instead of waiting for React to mount.
+
+            fetchPriority="high" because the preload scanner otherwise treats
+            an <img> as low priority until layout proves it is in the viewport,
+            and it competes with the route chunks for the first connections.
+            loading="eager" is stated rather than left to the default so that
+            nobody "optimises" it to lazy later - this is the one image on the
+            page that must never be deferred. */}
         <img
-          src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop"
+          src={HERO_SRC}
+          srcSet={HERO_SRCSET || undefined}
+          sizes={HERO_SIZES}
+          width={HERO_WIDTH}
+          height={HERO_HEIGHT}
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           alt=""
           className="h-full w-full object-cover opacity-40"
         />

@@ -16,6 +16,11 @@ export default function ProductGrid({
   emptyDescription = "Try adjusting your filters or check back soon.",
   emptyAction,
   className,
+  // How many cards load eagerly. 5 suits a page where the grid starts near
+  // the top (Collection, Search). A page whose grid sits below a full-height
+  // hero should pass 0 - otherwise it forces five below-the-fold downloads
+  // that compete with the LCP image.
+  eagerCount = 5,
 }) {
   const gridClass = cn(
     "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5",
@@ -50,7 +55,7 @@ export default function ProductGrid({
           key={product._id}
           product={product}
           index={index}
-          priority={index < 5}
+          priority={index < eagerCount}
         />
       ))}
     </div>

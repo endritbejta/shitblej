@@ -49,6 +49,11 @@ export default function Home() {
         subtitle="What everyone’s watching this week."
         products={trending}
         loading={loading}
+        // Nothing on this page is above the fold except the hero, so no card
+        // should load eagerly and compete with the LCP image for the first
+        // connections. The component defaults suit Collection and Search,
+        // where the grid does start near the top.
+        eagerCount={0}
         actionLabel="View all"
         actionTo="/collections/hobby-collector"
       />
@@ -69,7 +74,7 @@ export default function Home() {
           actionLabel="View all"
           actionTo="/collections/electronics"
         />
-        <ProductGrid products={recent} loading={loading} skeletonCount={10} />
+        <ProductGrid products={recent} loading={loading} skeletonCount={10} eagerCount={0} />
       </section>
 
       <ProductRail
@@ -78,6 +83,7 @@ export default function Home() {
         subtitle="Premium pieces worth the splurge."
         products={luxury}
         loading={loading}
+        eagerCount={0}
       />
 
       <section className="space-y-6">

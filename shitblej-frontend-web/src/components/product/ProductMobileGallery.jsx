@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
+import { WIDTHS, buildSrcSet, imageAtWidth } from "../../lib/imageUrl";
 
 export default function ProductMobileGallery({ images, productName, onBack }) {
     return (
@@ -31,7 +32,19 @@ export default function ProductMobileGallery({ images, productName, onBack }) {
                     >
                         {images.map((img, index) => (
                             <SwiperSlide key={index}>
-                                <img src={img} alt={`${productName} ${index + 1}`} className="w-full h-full object-cover" />
+                                {/* Full-bleed on mobile. The first slide is
+                                    this page's LCP element, so it is eager and
+                                    high priority; the rest can wait. */}
+                                <img
+                                    src={imageAtWidth(img, 720)}
+                                    srcSet={buildSrcSet(img, WIDTHS.detail) || undefined}
+                                    sizes="100vw"
+                                    alt={`${productName} ${index + 1}`}
+                                    loading={index === 0 ? "eager" : "lazy"}
+                                    fetchPriority={index === 0 ? "high" : undefined}
+                                    decoding="async"
+                                    className="w-full h-full object-cover"
+                                />
                             </SwiperSlide>
                         ))}
                     </Swiper>

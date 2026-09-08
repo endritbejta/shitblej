@@ -5,6 +5,7 @@ import SmartImage from "./SmartImage";
 import Skeleton from "./Skeleton";
 import WishlistButton from "./WishlistButton";
 import { cn } from "../../utils/cn";
+import { WIDTHS } from "../../lib/imageUrl";
 
 /**
  * The product card — the atom every grid and rail is built from.
@@ -12,7 +13,21 @@ import { cn } from "../../utils/cn";
  * chip, bold green price, hover elevation. Works in both fixed grids and
  * horizontal rails (pass a width via className).
  */
-function ProductCardComponent({ product, index = 0, priority = false, className }) {
+// How wide the card's image box actually is, per breakpoint. The container
+// caps at 72rem/1152px, so above that the slot is a fixed pixel width rather
+// than a fraction of the viewport. Defaults describe ProductGrid's 2/3/4/5
+// columns; ProductRail passes its own, because its cards are a different
+// fraction.
+const GRID_IMAGE_SIZES =
+  "(min-width: 1280px) 230px, (min-width: 1024px) 288px, (min-width: 640px) 33vw, 50vw";
+
+function ProductCardComponent({
+  product,
+  index = 0,
+  priority = false,
+  imageSizes = GRID_IMAGE_SIZES,
+  className,
+}) {
   const id = product._id;
   const image = product.images?.[0] || product.image;
   const rating = product.user?.rating || product.seller?.rating || 0;
@@ -33,6 +48,8 @@ function ProductCardComponent({ product, index = 0, priority = false, className 
         <SmartImage
           src={image}
           alt={product.name}
+          widths={WIDTHS.card}
+          sizes={imageSizes}
           loading={priority ? "eager" : "lazy"}
           wrapperClassName="h-full w-full"
           className="h-full w-full object-cover transition-transform duration-500 ease-premium group-hover:scale-[1.04]"

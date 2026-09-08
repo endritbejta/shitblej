@@ -10,8 +10,20 @@ import { SearchProvider } from "./context/SearchContext";
 import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
+// Home is imported eagerly, every other route is lazy.
+//
+// It was lazy too, which cost the landing page a second serialised network
+// round trip: the browser had to fetch and run the entry bundle, mount React,
+// discover the dynamic import, fetch an 11 KiB chunk, and only then could the
+// hero - the LCP element - even enter the DOM. Because <Suspense> wraps the
+// whole <Routes>, nothing rendered in the meantime, not even the header, and
+// then the entire tree mounted in one commit.
+//
+// Splitting the route a visitor is most likely to land on buys nothing: the
+// chunk is fetched on essentially every session anyway.
+import Home from "./pages/Home";
+
 // Lazy-loaded pages
-const Home = lazy(() => import("./pages/Home"));
 const Sell = lazy(() => import("./pages/Sell"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const Profile = lazy(() => import("./pages/Profile"));

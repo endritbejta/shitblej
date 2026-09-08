@@ -15,6 +15,19 @@
   # and jsdom's undici needs >=20.18 for node:worker_threads.markAsUncloneable.
   NODE_VERSION = "22"
 
+# Vite content-hashes every file in /assets, so a given URL can never change
+# what it returns - which is exactly the case `immutable` exists for. Netlify's
+# default is `max-age=0, must-revalidate`, so without this every repeat visit
+# spends a conditional request per asset just to be told nothing changed.
+#
+# index.html is deliberately NOT cached: it carries the hashed asset names and
+# the inlined stylesheet, so it has to be revalidated for a deploy to be picked
+# up at all.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

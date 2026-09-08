@@ -8,6 +8,11 @@ import { cn } from "../../utils/cn";
  * Horizontally scrolling product rail with snap + desktop arrow controls.
  * Cards keep the exact grid card design, just constrained to a rail width.
  */
+// Matches `itemClass` below: 46% / 30% / 22% / 19% of the container, which
+// caps at 72rem.
+const RAIL_IMAGE_SIZES =
+  "(min-width: 1280px) 219px, (min-width: 1024px) 253px, (min-width: 640px) 30vw, 46vw";
+
 export default function ProductRail({
   eyebrow,
   title,
@@ -17,6 +22,8 @@ export default function ProductRail({
   products = [],
   loading = false,
   skeletonCount = 6,
+  // See ProductGrid: 0 for a rail that sits below a full-height hero.
+  eagerCount = 4,
 }) {
   const scroller = useRef(null);
 
@@ -66,7 +73,12 @@ export default function ProductRail({
             {loading ? (
               <ProductCardSkeleton />
             ) : (
-              <ProductCard product={product} index={i} priority={i < 4} />
+              <ProductCard
+                product={product}
+                index={i}
+                priority={i < eagerCount}
+                imageSizes={RAIL_IMAGE_SIZES}
+              />
             )}
           </div>
         ))}

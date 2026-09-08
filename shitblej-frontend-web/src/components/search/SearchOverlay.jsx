@@ -19,6 +19,7 @@ import { useRecentSearches } from "../../hooks/useRecentSearches";
 import SmartImage from "../ui/SmartImage";
 import WishlistButton from "../ui/WishlistButton";
 import { cn } from "../../utils/cn";
+import { WIDTHS } from "../../lib/imageUrl";
 
 const EXIT_MS = 200;
 
@@ -368,6 +369,8 @@ export default function SearchOverlay({ open, onClose }) {
                           src={row.data.image}
                           alt={row.data.title}
                           wrapperClassName="absolute inset-0 h-full w-full"
+                widths={WIDTHS.tile}
+                sizes="(min-width: 640px) 25vw, 50vw"
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -489,6 +492,8 @@ function SearchRow({ row, active, onHover, onSelect, onRemove }) {
           src={p.images?.[0] || p.image}
           alt={p.name}
           wrapperClassName="h-11 w-11 shrink-0 rounded-lg"
+                widths={WIDTHS.thumb}
+                sizes="44px"
           className="h-full w-full rounded-lg object-cover"
         />
         <span className="min-w-0 flex-1">

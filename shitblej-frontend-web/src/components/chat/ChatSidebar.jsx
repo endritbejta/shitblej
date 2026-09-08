@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Search, MessageSquare } from "lucide-react";
 import SmartImage from "../ui/SmartImage";
 import { cn } from "../../utils/cn";
+import { WIDTHS } from "../../lib/imageUrl";
 
 function RowSkeleton() {
   return (
@@ -85,6 +86,8 @@ export default function ChatSidebar({ conversations, selectedId, onSelect, loadi
                     src={conv.avatar}
                     alt={conv.name}
                     wrapperClassName="h-12 w-12 rounded-full"
+                widths={WIDTHS.thumb}
+                sizes="48px"
                     className="h-full w-full rounded-full object-cover"
                   />
                   {conv.online && (
