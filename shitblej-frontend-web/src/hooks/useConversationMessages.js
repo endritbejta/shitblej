@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMessages, sendMessage } from "../api/messages";
 import { getSocket } from "../lib/socket";
+import { queryKeys } from "../lib/queryClient";
 import {
   buildTimeline,
   canLikelySendText,
@@ -9,14 +11,22 @@ import {
 
 const FALLBACK_POLL_MS = 15000;
 
+const DEFAULT_LOCK = {
+  message:
+    "Messaging unlocks once an offer is accepted. Make an offer to start negotiating.",
+};
+
 /**
  * The message thread with one partner, as negotiation-aware state.
  *
- * - Fetches the thread (offer messages arrive populated with live offers).
- * - Realtime: text messages for this thread are appended from the socket;
- *   offer messages trigger a refetch (socket payloads carry the offer id,
- *   not its populated state — refetching is the honest way to stay in sync
- *   with accepts/counters from other devices).
+ * - The thread is a cached query, so reopening a conversation renders from
+ *   cache immediately and revalidates behind the already-drawn content. It
+ *   used to clear the messages and show a skeleton on every switch, which
+ *   flashed even for a thread you had open seconds earlier.
+ * - Realtime: text messages for this thread are written straight into the
+ *   cache; offer messages trigger a refetch (socket payloads carry the offer
+ *   id, not its populated state - refetching is the honest way to stay in
+ *   sync with accepts and counters from other devices).
  * - Falls back to polling only while the socket is down; resyncs on reconnect.
  * - The composer lock is a hint mirrored from the server policy
  *   (canLikelySendText); the server decides. sendText is optimistic and a 403
@@ -26,67 +36,42 @@ const FALLBACK_POLL_MS = 15000;
  * Returns raw messages plus derived (never stored) timeline + negotiation.
  */
 export function useConversationMessages({ user, partnerId }) {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  // { message } while free text looks disallowed - mirrored up front, then
-  // corrected by the server if it refuses a send. null = composer open.
-  const [lock, setLock] = useState(null);
-  const partnerRef = useRef(partnerId);
-  const requestIdRef = useRef(0);
-  partnerRef.current = partnerId;
+  const queryClient = useQueryClient();
+  const key = useMemo(() => queryKeys.thread(partnerId), [partnerId]);
 
-  const refresh = useCallback(async () => {
-    if (!user || !partnerRef.current) return;
-    const requestedPartner = partnerRef.current;
-    const requestId = ++requestIdRef.current;
-    try {
-      const res = await getMessages(requestedPartner);
-      if (
-        requestId !== requestIdRef.current ||
-        partnerRef.current !== requestedPartner
-      ) return;
-      const thread = res.data || [];
-      setMessages(thread);
-      // Optimistic banner only. canLikelySendText mirrors the server policy
-      // (see lib/negotiation.js); the server's 403 below is what actually
-      // decides, and it overrides this with its own copy.
-      setLock(
-        canLikelySendText(thread)
-          ? null
-          : {
-              message:
-                "Messaging unlocks once an offer is accepted. Make an offer to start negotiating.",
-            }
-      );
-      setError(null);
-    } catch (err) {
-      if (requestId !== requestIdRef.current) return;
-      setError(
-        err.response?.data?.error || "Couldn’t load this conversation."
-      );
-    }
-  }, [user]);
+  const enabled = Boolean(user && partnerId);
 
-  // Initial load per partner.
+  const {
+    data: messages = [],
+    isPending,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: key,
+    queryFn: async () => (await getMessages(partnerId)).data || [],
+    enabled,
+  });
+
+  // The server's own refusal, which overrides the mirrored hint below. Kept
+  // separate so a 403 is not wiped out by the next successful read.
+  const [serverLock, setServerLock] = useState(null);
+  const [sendError, setSendError] = useState(null);
+
+  // A different conversation starts with a clean slate: neither the previous
+  // thread's refusal nor its send failure says anything about this one.
   useEffect(() => {
-    if (!user || !partnerId) return;
-    let cancelled = false;
-    setLoading(true);
-    setMessages([]);
-    setLock(null);
-    (async () => {
-      await refresh();
-      if (!cancelled) setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, partnerId, refresh]);
+    setServerLock(null);
+    setSendError(null);
+  }, [partnerId]);
+
+  const refresh = useCallback(() => {
+    if (!enabled) return;
+    refetch();
+  }, [enabled, refetch]);
 
   // Realtime + reconnect resync + fallback polling while disconnected.
   useEffect(() => {
-    if (!user || !partnerId) return;
+    if (!enabled) return;
     const socket = getSocket();
     let pollId = null;
 
@@ -114,11 +99,13 @@ export function useConversationMessages({ user, partnerId }) {
       if (msg.type === "offer") {
         // Live offer state isn't in the socket payload — resync.
         refresh();
-      } else {
-        setMessages((prev) =>
-          prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]
-        );
+        return;
       }
+      // Append into the cache rather than local state, so the message is
+      // still there when this conversation is reopened.
+      queryClient.setQueryData(key, (prev = []) =>
+        prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]
+      );
     };
 
     if (socket) {
@@ -140,7 +127,7 @@ export function useConversationMessages({ user, partnerId }) {
         socket.io.off("reconnect", stopPolling);
       }
     };
-  }, [user, partnerId, refresh]);
+  }, [enabled, user, partnerId, refresh, queryClient, key]);
 
   const sendText = useCallback(
     async (text) => {
@@ -152,39 +139,53 @@ export function useConversationMessages({ user, partnerId }) {
         receiver: partnerId,
         createdAt: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, optimistic]);
+      queryClient.setQueryData(key, (prev = []) => [...prev, optimistic]);
+
       try {
         const res = await sendMessage(partnerId, text);
-        setMessages((prev) =>
+        queryClient.setQueryData(key, (prev = []) =>
           prev.map((m) => (m._id === optimistic._id ? res.data : m))
         );
+        setSendError(null);
         return true;
       } catch (err) {
-        setMessages((prev) => prev.filter((m) => m._id !== optimistic._id));
+        queryClient.setQueryData(key, (prev = []) =>
+          prev.filter((m) => m._id !== optimistic._id)
+        );
         if (err.response?.data?.code === "negotiation_required") {
-          setLock({ message: err.response.data.error });
+          setServerLock({ message: err.response.data.error });
         } else {
-          setError(err.response?.data?.error || "Message failed to send.");
+          setSendError(err.response?.data?.error || "Message failed to send.");
         }
         return false;
       }
     },
-    [user, partnerId]
+    [user, partnerId, queryClient, key]
   );
 
-  // Checkout links the accepted offer to an order. The caller clears the old
-  // lock immediately and refreshes the populated offer state.
-  const clearLock = useCallback(() => setLock(null), []);
+  // Checkout links the accepted offer to an order. The caller clears the lock
+  // immediately and refreshes; once the refetched offer carries its order,
+  // the mirrored hint below agrees and stays open.
+  const clearLock = useCallback(() => setServerLock(null), []);
 
   const timeline = useMemo(() => buildTimeline(messages), [messages]);
   const negotiation = useMemo(() => deriveNegotiation(messages), [messages]);
+
+  // The server's refusal wins; otherwise mirror its policy from the thread.
+  const lock = useMemo(() => {
+    if (serverLock) return serverLock;
+    return canLikelySendText(messages) ? null : DEFAULT_LOCK;
+  }, [serverLock, messages]);
 
   return {
     messages,
     timeline,
     negotiation,
-    loading,
-    error,
+    // Only "loading" when there is nothing to show. A background revalidation
+    // of a cached thread must not raise the skeleton over content the reader
+    // is already looking at - that was the flash.
+    loading: enabled && isPending,
+    error: sendError || (queryError ? "Couldn’t load this conversation." : null),
     lock,
     clearLock,
     sendText,
