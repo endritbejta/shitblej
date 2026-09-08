@@ -58,7 +58,7 @@ Message authorization is a server responsibility. Client-side controls improve t
 - Node.js 18 or newer
 - npm
 - MongoDB, either locally or through MongoDB Atlas
-- A Cloudinary account for image uploads
+- A Cloudinary account for image uploads — optional locally, see `UPLOAD_DRIVER` below
 - Expo Go, an iOS Simulator, or an Android Emulator for mobile development
 
 Clone the repository:
@@ -94,6 +94,22 @@ CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 ```
+
+#### Running without a Cloudinary account
+
+Set `UPLOAD_DRIVER=local` and the Cloudinary variables become unnecessary:
+uploads are written to `UPLOAD_DIR` (default `backend/.uploads`, gitignored)
+and served back at `/uploads`, so a fresh clone can list a product without
+signing up for anything.
+
+```env
+UPLOAD_DRIVER=local
+```
+
+The API refuses to start with this driver under `NODE_ENV=production`: on a
+container platform the local disk is ephemeral and per instance, so images
+would vanish on the next deploy and 404 on every instance except the one that
+received the upload. Production uses `cloudinary`, which is the default.
 
 `backend/.env.example` documents the optional variables too. Two matter when
 deploying:
@@ -242,7 +258,7 @@ npm run lint
 npm run build
 ```
 
-Backend integration coverage includes users, products, saved items, offers, negotiation rules, orders, and messages.
+Backend integration coverage includes users, products, saved items, offers, negotiation rules, orders, messages, image upload (through a real multipart request, using the local upload driver), rate limiting, caching, observability and the background sweeper.
 
 ## Deployment
 

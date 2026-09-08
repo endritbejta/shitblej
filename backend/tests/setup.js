@@ -13,3 +13,13 @@ process.env.CLOUDINARY_CLOUD_NAME =
 process.env.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "test-key";
 process.env.CLOUDINARY_API_SECRET =
   process.env.CLOUDINARY_API_SECRET || "test-secret";
+
+// Uploads go to a throwaway directory rather than Cloudinary, so the multipart
+// upload path can be exercised for real. Before this driver existed nothing in
+// the suite ever posted an image - products were inserted straight through the
+// model - so multer, the storage engine and the orphan-cleanup middleware were
+// only covered in isolation, never through a request.
+process.env.UPLOAD_DRIVER = process.env.UPLOAD_DRIVER || "local";
+process.env.UPLOAD_DIR =
+  process.env.UPLOAD_DIR ||
+  require("path").join(require("os").tmpdir(), "shitblej-test-uploads");

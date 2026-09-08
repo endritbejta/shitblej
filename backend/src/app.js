@@ -51,6 +51,30 @@ app.use(express.json({ limit: "32kb" }));
 // limiter so a probe never consumes a client's quota or gets throttled.
 app.use(healthRoutes);
 
+// Serve locally-stored uploads, when that is where uploads go. Mounted only
+// for the local driver so production never exposes a static directory it does
+// not use.
+//
+// `express.static` does not execute anything it serves, and the storage engine
+// generates every filename from a UUID plus an extension derived from the
+// mimetype - nothing client-supplied reaches the path - so this cannot be
+// turned into a path-traversal or a stored-HTML vector. `nosniff` comes from
+// helmet above.
+if (config.uploads.driver === "local") {
+  app.use(
+    config.uploads.publicPath,
+    express.static(config.uploads.directory, {
+      // Filenames are content-addressed by UUID, so a given URL never changes
+      // what it returns.
+      immutable: true,
+      maxAge: "1y",
+      // No directory listing, and no falling through to the SPA.
+      index: false,
+      fallthrough: false,
+    })
+  );
+}
+
 // Mount all feature modules under the versioned API prefix. The blanket
 // limiter sits here rather than on the app so /health stays reachable for
 // uptime probes; auth routes add a tighter limiter of their own.
@@ -62,7 +86,7 @@ app.use(healthRoutes);
 app.use("/api/v1", noStore, apiLimiter, apiRoutes);
 
 // Failed requests that already uploaded images release them before the error
-// is reported, so a rejected payload cannot leave orphans in Cloudinary.
+// is reported, so a rejected payload cannot leave orphans in the image store.
 app.use(cleanupUploads);
 
 // Central error handler (must be last)

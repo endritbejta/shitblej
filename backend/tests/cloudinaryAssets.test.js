@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+const { eventually } = require("./helpers/eventually");
 const request = require("supertest");
 const app = require("./helpers/api").server;
 const db = require("./helpers/db");
@@ -191,17 +194,23 @@ describe("a rejected upload does not leave orphans", () => {
   afterEach(() => destroySpy.mockRestore());
 
   const cleanupUploads = require("../src/middleware/cleanupUploads");
+  const config = require("../src/config");
 
-  // Driven directly: exercising it through the route would mean uploading to
-  // Cloudinary for real. What matters is that the middleware releases whatever
-  // multer already put on the request when the request then fails.
-  it("destroys files attached to a failed request", async () => {
-    const req = {
-      files: [
-        { filename: "shitblej-products/upload-a", path: `${CDN}/a.jpg` },
-        { filename: "shitblej-products/upload-b", path: `${CDN}/b.jpg` },
-      ],
-    };
+  // Release is driver-aware, and the suite runs UPLOAD_DRIVER=local, so these
+  // assert the local branch: the file goes, and Cloudinary is never called.
+  // The same middleware is also exercised through a real multipart request in
+  // uploads.api.test.js - which the local driver is what made possible.
+  const seedUpload = (name) => {
+    fs.mkdirSync(config.uploads.directory, { recursive: true });
+    const filename = `${name}.png`;
+    fs.writeFileSync(path.join(config.uploads.directory, filename), "bytes");
+    return { filename, path: `${config.uploads.publicPath}/${filename}` };
+  };
+  const stillOnDisk = (file) =>
+    fs.existsSync(path.join(config.uploads.directory, file.filename));
+
+  it("releases files attached to a failed request", async () => {
+    const req = { files: [seedUpload("upload-a"), seedUpload("upload-b")] };
     const err = new Error("Validation Error: price must be a number");
 
     const forwarded = await new Promise((resolve) => {
@@ -211,25 +220,24 @@ describe("a rejected upload does not leave orphans", () => {
     // The original error still reaches the error handler untouched.
     expect(forwarded).toBe(err);
 
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(destroySpy.mock.calls.map((c) => c[0]).sort()).toEqual([
-      "shitblej-products/upload-a",
-      "shitblej-products/upload-b",
-    ]);
+    await eventually(() => req.files.every((f) => !stillOnDisk(f)), {
+      label: "both uploads released",
+    });
+    // A local filename is not a Cloudinary public id; sending it there would
+    // log an error for every failed upload and leave the file behind.
+    expect(destroySpy).not.toHaveBeenCalled();
   });
 
   it("handles a single-file upload (avatar)", async () => {
-    const req = { file: { filename: "shitblej-products/avatar" } };
+    const file = seedUpload("avatar");
+    const req = { file };
 
     await new Promise((resolve) => {
       cleanupUploads(new Error("nope"), req, {}, resolve);
     });
 
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(destroySpy).toHaveBeenCalledWith(
-      "shitblej-products/avatar",
-      expect.objectContaining({ invalidate: true }),
-    );
+    await eventually(() => !stillOnDisk(file), { label: "avatar released" });
+    expect(destroySpy).not.toHaveBeenCalled();
   });
 
   it("does nothing when the failed request had no uploads", async () => {

@@ -26,10 +26,22 @@ const envSchema = z.object({
   // CORS / client
   CLIENT_URL: z.string().url("CLIENT_URL must be a valid URL"),
 
-  // Cloudinary (image uploads)
-  CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
-  CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
-  CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
+  // Where uploaded images go.
+  //
+  // "cloudinary" is what production uses. "local" writes to UPLOAD_DIR and
+  // serves it back over HTTP, so the app runs from a fresh clone - and the
+  // listing flow can be tested end to end - without a Cloudinary account.
+  // It is refused in production below.
+  UPLOAD_DRIVER: z.enum(["cloudinary", "local"]).default("cloudinary"),
+  UPLOAD_DIR: z.string().min(1).default(".uploads"),
+
+  // Cloudinary (image uploads). Required only when that driver is selected,
+  // which is enforced in the refinement below rather than here - a plain
+  // .min(1) would demand credentials from someone who deliberately chose not
+  // to use the service.
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 
   // Number of reverse proxies in front of the app. Render/Heroku/Nginx put
   // exactly one, and the client IP is then the last entry of X-Forwarded-For.
@@ -59,7 +71,41 @@ const envSchema = z.object({
   NOTIFICATION_TTL_DAYS: z.coerce.number().int().min(0).default(90),
 });
 
-const parsed = envSchema.safeParse(process.env);
+// Cross-field rules. These are the mistakes that would otherwise surface as a
+// runtime failure on the first upload, long after deploy.
+const envSchemaChecked = envSchema.superRefine((env, ctx) => {
+  if (env.UPLOAD_DRIVER === "cloudinary") {
+    for (const key of [
+      "CLOUDINARY_CLOUD_NAME",
+      "CLOUDINARY_API_KEY",
+      "CLOUDINARY_API_SECRET",
+    ]) {
+      if (!env[key]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: `${key} is required when UPLOAD_DRIVER=cloudinary`,
+        });
+      }
+    }
+  }
+
+  // Local uploads on a container platform land on a disk that is ephemeral
+  // and per instance: images vanish on the next deploy, and are missing on
+  // every instance except the one that received them. Refusing to boot is
+  // kinder than serving broken images.
+  if (env.UPLOAD_DRIVER === "local" && env.NODE_ENV === "production") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["UPLOAD_DRIVER"],
+      message:
+        "UPLOAD_DRIVER=local is not usable in production - local disk is " +
+        "ephemeral and per instance. Use cloudinary.",
+    });
+  }
+});
+
+const parsed = envSchemaChecked.safeParse(process.env);
 
 if (!parsed.success) {
   const issues = parsed.error.issues
@@ -119,6 +165,14 @@ const config = Object.freeze({
   jwt: {
     secret: env.JWT_SECRET,
     expiresIn: env.JWT_EXPIRE,
+  },
+
+  uploads: {
+    driver: env.UPLOAD_DRIVER,
+    // Resolved to an absolute path here so nothing downstream depends on the
+    // process working directory.
+    directory: path.resolve(__dirname, "..", "..", env.UPLOAD_DIR),
+    publicPath: "/uploads",
   },
 
   cloudinary: {

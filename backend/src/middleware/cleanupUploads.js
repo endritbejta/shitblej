@@ -1,4 +1,4 @@
-const { destroyUploads } = require("../shared/utils/cloudinaryAssets");
+const { removeUploads } = require("../config/upload");
 
 // Error-handling middleware that deletes images already uploaded for a request
 // that then failed.
@@ -15,9 +15,11 @@ const cleanupUploads = (err, req, res, next) => {
   const files = req.files || (req.file ? [req.file] : []);
 
   if (files.length > 0) {
-    // Fire and forget: the client's error response must not wait on Cloudinary,
-    // and destroyUploads already swallows and logs its own failures.
-    destroyUploads(files).catch(() => {});
+    // Fire and forget: the client's error response must not wait on the image
+    // host, and removeUploads already swallows and logs its own failures.
+    // Driver-aware, so a local upload is unlinked rather than sent to
+    // Cloudinary as if its filename were a public id.
+    removeUploads(files).catch(() => {});
   }
 
   next(err);

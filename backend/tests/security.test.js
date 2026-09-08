@@ -295,3 +295,43 @@ describe("GET /api/v1/users (admin)", () => {
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 });
+
+describe("request body limit and error status propagation", () => {
+  it("rejects a body over the 32kb limit as a client error, not a server fault", async () => {
+    const res = await request(app)
+      .post("/api/v1/users/login")
+      .set("Content-Type", "application/json")
+      .send(JSON.stringify({ email: "a@b.c", password: "x".repeat(40_000) }));
+
+    // This was a 500 until the error handler stopped losing statusCode.
+    // `let error = { ...err }` copies only own enumerable properties, and
+    // everything built on http-errors - body-parser here, serve-static
+    // elsewhere - keeps statusCode on the prototype. So a client sending too
+    // much data raised a server-error alert instead of being told off.
+    expect(res.status).toBe(413);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("reports malformed JSON as a 400", async () => {
+    const res = await request(app)
+      .post("/api/v1/users/login")
+      .set("Content-Type", "application/json")
+      .send('{"email": "a@b.c",');
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("still defaults to 500 for an error that carries no status", async () => {
+    // The fix must not turn an unexpected failure into a 200-ish response.
+    const errorHandler = require("../src/middleware/error");
+    const probe = express();
+    probe.get("/boom", () => {
+      throw new Error("something unforeseen");
+    });
+    probe.use(errorHandler);
+
+    const res = await request(probe).get("/boom");
+    expect(res.status).toBe(500);
+  });
+});
