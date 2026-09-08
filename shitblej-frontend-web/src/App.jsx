@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 import AppLayout from "./layouts/AppLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -25,6 +27,7 @@ const WishlistPage = lazy(() => import("./pages/Wishlist"));
 
 export default function App() {
     return (
+        <QueryClientProvider client={queryClient}>
         <AuthProvider>
             <WishlistProvider>
                 <CollectionCacheProvider>
@@ -65,5 +68,6 @@ export default function App() {
                 </CollectionCacheProvider>
             </WishlistProvider>
         </AuthProvider>
+        </QueryClientProvider>
     );
 }
