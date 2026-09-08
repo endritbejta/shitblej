@@ -1,11 +1,18 @@
 const ErrorResponse = require("../shared/utils/errorResponse");
+const config = require("../config");
+
+// Database driver errors that are NOT one of the modelled cases below
+// (CastError, duplicate key, ValidationError). Their messages describe server
+// internals - "$where is not allowed in this context", index names, shard
+// details - so they are logged in full and reported generically.
+const DB_ERROR_NAMES = ["MongoServerError", "MongoError", "MongoServerSelectionError"];
 
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
   // Log detailed error for developers (only in development)
-  if (process.env.NODE_ENV === 'development') {
+  if (config.isDev) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'.red);
     console.log('ERROR DETAILS:'.red.bold);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'.red);
@@ -19,7 +26,7 @@ const errorHandler = (err, req, res, next) => {
       console.log(err.stack.gray);
     }
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'.red);
-  } else if (process.env.NODE_ENV !== 'test') {
+  } else if (config.env !== 'test') {
     // Production: just log the error message. Silent in tests to keep
     // jest output readable (expected 4xx errors would spam the console).
     console.log(`Error: ${err.message}`.red);
@@ -94,14 +101,21 @@ const errorHandler = (err, req, res, next) => {
     error = new ErrorResponse(message, 503);
   }
 
+  // Any other driver-level error. Without this the raw message reaches the
+  // client as a 500 - which leaked internals and told a prober exactly how a
+  // query was assembled. A rejected query is the caller's fault, so 400.
+  if (!error.statusCode && DB_ERROR_NAMES.includes(err.name)) {
+    error = new ErrorResponse("Invalid query.", 400, "invalid_query");
+  }
+
   // Send response
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || "An unexpected error occurred. Please try again.",
     ...(error.code && { code: error.code }),
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(config.isDev && {
       stack: err.stack,
-      details: err 
+      details: err
     })
   });
 };

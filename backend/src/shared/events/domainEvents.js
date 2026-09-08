@@ -11,14 +11,33 @@ const { EventEmitter } = require("events");
 // Contract:
 // - Emit AFTER the database write succeeds, never before.
 // - Payloads carry plain ids and primitives, not live mongoose documents.
-// - Handlers must not throw; the bus logs and swallows handler errors so a
-//   broken listener can never fail the request that emitted the event.
+// - Handlers may throw or reject freely; the bus contains both so a broken
+//   listener can never fail the request that emitted the event.
 class DomainEventBus extends EventEmitter {
   publish(eventName, payload) {
-    try {
-      this.emit(eventName, payload);
-    } catch (err) {
-      console.error(`Domain event handler failed for "${eventName}":`, err);
+    // Listeners are invoked one at a time rather than through emit(), because
+    // emit() only propagates SYNCHRONOUS throws - an async handler's rejection
+    // escapes the try/catch entirely and surfaces as an unhandledRejection,
+    // which server.js turns into process.exit(1). Every subscriber happened to
+    // catch its own errors, so the contract held by discipline; here it holds
+    // by construction.
+    for (const listener of this.listeners(eventName)) {
+      try {
+        const result = listener(payload);
+        if (result && typeof result.then === "function") {
+          result.catch((err) => {
+            console.error(
+              `Domain event handler failed for "${eventName}":`,
+              err && err.message
+            );
+          });
+        }
+      } catch (err) {
+        console.error(
+          `Domain event handler failed for "${eventName}":`,
+          err && err.message
+        );
+      }
     }
   }
 }

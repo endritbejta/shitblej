@@ -1,6 +1,6 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
-const colors = require("colors");
+require("colors"); // patches String.prototype with .red, .green, ...
 
 // load + validate env vars from the single source of truth
 const config = require("./src/config");
