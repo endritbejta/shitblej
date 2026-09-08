@@ -239,6 +239,30 @@ Production services must provide their own MongoDB, Cloudinary, JWT, CORS, API, 
 
 ## Contributing
 
+Run this once per clone, before your first commit:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+That enables `.githooks/pre-commit`, which refuses to commit a credential -
+env files with real values, connection strings with inline passwords, private
+keys, provider tokens. It reads what is staged, so it catches the mistake
+before it becomes a commit. `git commit --no-verify` bypasses it for a false
+positive.
+
+It exists because a real env file, carrying a live database URI and a JWT
+secret, was committed to this public repository and stayed reachable in the
+history until it was rewritten out. Two commits titled "security: remove
+database credentials" deleted it from the working tree only, which does
+nothing - the history keeps it. **If a credential is ever pushed, rotate it.
+Deleting it in a later commit is not a fix.**
+
+The hook is the last line of defence, not the first. GitHub's secret scanning
+with push protection rejects a push server-side and cannot be skipped with
+`--no-verify`; it is free on public repositories and worth enabling under
+Settings -> Code security.
+
 1. Create a focused branch from `main`.
 2. Keep changes scoped to the relevant application.
 3. Run the applicable tests, lint checks, and production build.

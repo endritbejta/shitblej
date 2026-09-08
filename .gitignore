@@ -2,7 +2,14 @@
 node_modules/
 **/node_modules/
 
-# Local env files
+# Local env files.
+#
+# The pattern that matters is `*.env`. Every rule below it is anchored to a
+# name STARTING with `.env`, which is how backend/config/config.env - a real
+# env file, with a live database URI, a JWT secret and an API key - was
+# committed in the initial commit and sat in public history.
+*.env
+**/*.env
 .env
 **/.env
 .env*.local
@@ -13,6 +20,11 @@ node_modules/
 **/.env.development
 .env.staging
 **/.env.staging
+
+# ...but the templates are meant to be tracked. `*.env` does not match these
+# (they end in `.example`), listed explicitly so the intent is unambiguous.
+!*.env.example
+!**/*.env.example
 
 # OS files
 .DS_Store
