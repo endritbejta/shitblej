@@ -12,7 +12,7 @@ vi.mock("socket.io-client", () => ({
 
 const { io } = await import("socket.io-client");
 const { getSocket, disconnectSocket } = await import("./socket");
-const { setToken, clearToken } = await import("./authToken");
+const { setToken, clearSession } = await import("./authToken");
 
 beforeEach(() => {
   disconnectSocket();
@@ -56,7 +56,7 @@ describe("getSocket", () => {
     setToken("token-a", { remember: true });
     const socket = getSocket();
 
-    clearToken();
+    clearSession();
 
     expect(getSocket()).toBeNull();
     expect(socket.disconnect).toHaveBeenCalledTimes(1);
