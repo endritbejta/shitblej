@@ -16,6 +16,7 @@ const {
 // the caller and exempts admins.
 const { protect } = require("../../middleware/auth");
 const validate = require("../../middleware/validate");
+const { publicRead } = require("../../middleware/cache");
 const { upload } = require("../../config/cloudinary");
 const {
   createProductSchema,
@@ -25,13 +26,13 @@ const {
 
 // @route   GET /api/v1/products/search
 // @access  Public
-router.get("/search", searchProducts);
+router.get("/search", publicRead(), searchProducts);
 
 // @route   GET  /api/v1/products
 // @route   POST /api/v1/products
 router
   .route("/")
-  .get(getProducts)
+  .get(publicRead(), getProducts)
   .post(
     protect,
     // multer runs before validation so multipart fields exist on req.body
@@ -45,7 +46,7 @@ router
 // @route   DELETE /api/v1/products/:id
 router
   .route("/:id")
-  .get(validate(productIdParamSchema), getProduct)
+  .get(publicRead(), validate(productIdParamSchema), getProduct)
   .put(
     protect,
     validate(updateProductSchema),

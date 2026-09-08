@@ -7,6 +7,7 @@ const config = require("./config");
 const errorHandler = require("./middleware/error");
 const cleanupUploads = require("./middleware/cleanupUploads");
 const { apiLimiter } = require("./middleware/rateLimit");
+const { noStore } = require("./middleware/cache");
 const apiRoutes = require("./routes");
 
 // Cross-module event subscribers. Registered at app build so every entry
@@ -55,7 +56,10 @@ app.get("/health", (req, res) => {
 // Mount all feature modules under the versioned API prefix. The blanket
 // limiter sits here rather than on the app so /health stays reachable for
 // uptime probes; auth routes add a tighter limiter of their own.
-app.use("/api/v1", apiLimiter, apiRoutes);
+// `noStore` first, so every endpoint is private by default and only routes
+// that opt in are cacheable. A new private endpoint is then protected without
+// anyone having to remember.
+app.use("/api/v1", apiLimiter, noStore, apiRoutes);
 
 // Failed requests that already uploaded images release them before the error
 // is reported, so a rejected payload cannot leave orphans in Cloudinary.
