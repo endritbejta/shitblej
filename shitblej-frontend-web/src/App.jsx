@@ -7,6 +7,7 @@ import { CollectionCacheProvider } from "./context/CollectionCacheContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { SearchProvider } from "./context/SearchContext";
 import ScrollToTop from "./components/ScrollToTop";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -30,7 +31,11 @@ export default function App() {
                     <BrowserRouter>
                         <ScrollToTop />
                         <SearchProvider>
-                            <Suspense fallback={<Loading fullScreen />}>
+                            {/* Outermost catch: without this, any render error
+                                - or a failed lazy() chunk after a deploy -
+                                leaves a blank page with no way back. */}
+                            <ErrorBoundary>
+                              <Suspense fallback={<Loading fullScreen />}>
                                 <Routes>
                                     <Route path="products/:id" element={<ProductDetail />} />
                                     <Route element={<AppLayout />}>
@@ -53,7 +58,8 @@ export default function App() {
                                         <Route path="*" element={<NotFound />} />
                                     </Route>
                                 </Routes>
-                            </Suspense>
+                              </Suspense>
+                            </ErrorBoundary>
                         </SearchProvider>
                     </BrowserRouter>
                 </CollectionCacheProvider>

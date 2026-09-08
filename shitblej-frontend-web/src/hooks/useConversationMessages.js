@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getMessages, sendMessage } from "../api/messages";
 import { getSocket } from "../lib/socket";
-import { buildTimeline, deriveNegotiation } from "../lib/negotiation";
+import {
+  buildTimeline,
+  canLikelySendText,
+  deriveNegotiation,
+} from "../lib/negotiation";
 
 const FALLBACK_POLL_MS = 15000;
 
@@ -14,9 +18,10 @@ const FALLBACK_POLL_MS = 15000;
  *   not its populated state — refetching is the honest way to stay in sync
  *   with accepts/counters from other devices).
  * - Falls back to polling only while the socket is down; resyncs on reconnect.
- * - sendText is optimistic and honours the backend messaging policy: a 403
- *   with code "negotiation_required" locks the composer with the server's
- *   own message.
+ * - The composer lock is a hint mirrored from the server policy
+ *   (canLikelySendText); the server decides. sendText is optimistic and a 403
+ *   with code "negotiation_required" replaces the hint with the server's own
+ *   message.
  *
  * Returns raw messages plus derived (never stored) timeline + negotiation.
  */
@@ -24,7 +29,8 @@ export function useConversationMessages({ user, partnerId }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // { message } when the backend refused free text (policy), else null.
+  // { message } while free text looks disallowed - mirrored up front, then
+  // corrected by the server if it refuses a send. null = composer open.
   const [lock, setLock] = useState(null);
   const partnerRef = useRef(partnerId);
   const requestIdRef = useRef(0);
@@ -41,21 +47,17 @@ export function useConversationMessages({ user, partnerId }) {
         partnerRef.current !== requestedPartner
       ) return;
       const thread = res.data || [];
-      const hasAcceptedOrder = thread.some(
-        (message) =>
-          message.type === "offer" &&
-          message.offer &&
-          typeof message.offer === "object" &&
-          message.offer.order
-      );
       setMessages(thread);
+      // Optimistic banner only. canLikelySendText mirrors the server policy
+      // (see lib/negotiation.js); the server's 403 below is what actually
+      // decides, and it overrides this with its own copy.
       setLock(
-        !hasAcceptedOrder
-          ? {
+        canLikelySendText(thread)
+          ? null
+          : {
               message:
-                "Messaging unlocks after checkout creates an accepted order.",
+                "Messaging unlocks once an offer is accepted. Make an offer to start negotiating.",
             }
-          : null
       );
       setError(null);
     } catch (err) {

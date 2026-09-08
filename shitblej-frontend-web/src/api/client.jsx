@@ -1,19 +1,14 @@
 import axios from "axios";
+import { API_BASE_URL } from "../lib/config";
+import { clearToken, getToken, notifyUnauthorized } from "../lib/authToken";
 
-// In dev, go through the Vite proxy (/api) to sidestep CORS; in production,
-// talk to the hosted API directly.
-const client = axios.create({
-    baseURL: import.meta.env.DEV
-        ? "/api/v1"
-        : "https://shitblej.onrender.com/api/v1",
-});
+const client = axios.create({ baseURL: API_BASE_URL });
 
 // Auth token and Content-Type interceptor
 client.interceptors.request.use((config) => {
-    // Check both localStorage and sessionStorage for token
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token = getToken();
 
-    if (token && token !== "undefined" && token !== "null") {
+    if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -25,6 +20,11 @@ client.interceptors.request.use((config) => {
 
     return config;
 });
+
+// A 401 on the login/register calls is the normal answer to bad credentials,
+// not an expired session - those must reach the form so it can show the error.
+const isCredentialCheck = (url = "") =>
+    url.includes("/users/login") || url.includes("/users/register");
 
 // Surface real errors, stay quiet otherwise.
 client.interceptors.response.use(
@@ -38,6 +38,17 @@ client.interceptors.response.use(
                 console.error("[API] Network error", url, error.message);
             }
         }
+
+        // The session is gone: the token expired, was revoked, or the account
+        // was deleted. Previously nothing handled this, so the app kept its
+        // stale user and every request failed silently until a manual reload.
+        // Drop the token and let AuthContext react (ProtectedRoute then sends
+        // the user to /login).
+        if (error.response?.status === 401 && !isCredentialCheck(error.config?.url)) {
+            clearToken();
+            notifyUnauthorized();
+        }
+
         return Promise.reject(error);
     }
 );

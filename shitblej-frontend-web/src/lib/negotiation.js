@@ -76,6 +76,41 @@ export function buildTimeline(messages) {
 }
 
 /**
+ * Whether free text is likely to be accepted for this thread.
+ *
+ * A HINT, not a decision. The authority is the server: backend
+ * src/modules/messages/message.policy.js (`canSendText`), which answers 403
+ * with code "negotiation_required" and its own copy, and the send path locks
+ * the composer on that. This exists only so the composer can show the banner
+ * up front instead of letting someone type a message that will bounce.
+ *
+ * It mirrors the server's two conditions:
+ *   1. an order exists between the pair (the server also requires it not be
+ *      cancelled — we cannot see order status from an offer, so a cancelled
+ *      order shows an open composer and the 403 corrects it on send), or
+ *   2. an accepted offer is still inside its checkout window: the deal is
+ *      agreed and the order does not exist yet.
+ *
+ * Condition 2 is the one that matters and the one that was missing: the
+ * previous rule required `offer.order`, i.e. a completed checkout, so the
+ * whole agreed-but-not-yet-checked-out window — exactly when the two need to
+ * arrange the handover — showed a locked composer the server would have
+ * accepted messages during.
+ */
+export function canLikelySendText(messages, now = new Date()) {
+  const { offers } = deriveNegotiation(messages);
+
+  return offers.some((offer) => {
+    if (offer.order) return true;
+    return (
+      offer.status === "accepted" &&
+      offer.checkoutExpiresAt &&
+      new Date(offer.checkoutExpiresAt) > now
+    );
+  });
+}
+
+/**
  * Summary of the negotiation embedded in a thread — used for hints (banner
  * copy, composer emphasis), never for permission decisions.
  */
