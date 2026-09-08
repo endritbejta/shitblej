@@ -25,6 +25,18 @@ exports.getUsers = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, count: users.length, data: users });
 });
 
+// @desc    Get the authenticated user
+// @route   GET /api/v1/users/me
+// @access  Private
+//
+// Exists so a client never has to work out who it is. Without this the web app
+// decoded the JWT payload by hand just to recover its own id before it could
+// ask for the profile - parsing a token the client has no business reading.
+exports.getMe = asyncHandler(async (req, res) => {
+  const user = await userService.getUserById(req.user.id, req.user);
+  res.status(200).json({ success: true, data: user });
+});
+
 // @desc    Get single user
 // @route   GET /api/v1/users/:id
 // @access  Private (any authenticated user; contact details owner/admin only)

@@ -10,7 +10,13 @@ const { EventEmitter } = require("events");
 //
 // Contract:
 // - Emit AFTER the database write succeeds, never before.
-// - Payloads carry plain ids and primitives, not live mongoose documents.
+// - Payloads must be plain, serializable data - never a live mongoose
+//   document. A handler may relay a payload straight onto a socket, so
+//   anything carrying getters, virtuals or a database session would either
+//   serialize unpredictably or keep a document alive past its request.
+//   Most payloads are therefore ids and primitives; where a consumer needs a
+//   whole record to deliver (messages and notifications go out over the
+//   socket verbatim) it is detached with .toObject() first.
 // - Handlers may throw or reject freely; the bus contains both so a broken
 //   listener can never fail the request that emitted the event.
 class DomainEventBus extends EventEmitter {
