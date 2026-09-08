@@ -93,6 +93,26 @@ describe("private endpoints are never stored", () => {
     expect(cacheControl(res)).toBe("no-store");
   });
 
+  it("marks a rate-limited response no-store too", async () => {
+    const express = require("express");
+    const { noStore } = require("../src/middleware/cache");
+    const { createRateLimiter } = require("../src/middleware/rateLimit");
+
+    // Mirrors app.js: the header middleware runs BEFORE the limiter, because
+    // middleware that short-circuits never calls next(). With the limiter
+    // first, a 429 was the one response under /api/v1 with no cache policy,
+    // and a cached 429 would keep someone throttled past their window.
+    const tiny = express();
+    tiny.use("/api/v1", noStore, createRateLimiter({ windowMs: 60_000, max: 1 }));
+    tiny.get("/api/v1/thing", (req, res) => res.json({ ok: true }));
+
+    await request(tiny).get("/api/v1/thing");
+    const blocked = await request(tiny).get("/api/v1/thing");
+
+    expect(blocked.status).toBe(429);
+    expect(cacheControl(blocked)).toBe("no-store");
+  });
+
   it("marks an unauthorized response no-store too", async () => {
     // Error bodies are as private as success bodies, and a cached 401 would
     // be its own bug.
