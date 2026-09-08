@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# Refuse to commit credentials.
+#
+# This exists because backend/config/config.env - a real env file carrying a
+# live MongoDB URI, a six-character JWT secret and an API key - was committed
+# in the initial commit of a PUBLIC repository, and stayed reachable in the
+# history until it was rewritten out. Two later commits titled "security:
+# remove database credentials" deleted it from the working tree only, which
+# does nothing: `git log -p` still returned it.
+#
+# It checks what is STAGED, so it catches the mistake before it becomes a
+# commit rather than after it becomes history.
+#
+# Install (once per clone):   git config core.hooksPath .githooks
+# Bypass a false positive:    git commit --no-verify
+#
+# This is the last line of defence, not the first. Enable GitHub's secret
+# scanning push protection too - that rejects a push server-side and cannot
+# be skipped with --no-verify.
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+fail=0
+
+note() {
+  [ "$fail" -eq 0 ] && printf '\n\033[31mCommit blocked: possible credential.\033[0m\n\n'
+  fail=1
+  printf '  %s\n' "$1"
+}
+
+# 1. Env files. Templates are fine; anything else with a real value is not.
+for f in $staged; do
+  case "$f" in
+    *.env.example|*.env.template|*.env.sample) continue ;;
+    *.env|.env|.env.*)
+      note "$f is an env file - keep the values out of git and document the keys in .env.example instead"
+      ;;
+  esac
+done
+
+# 2. Credential-shaped content in the staged diff.
+#
+# Matched against added lines only, and each pattern is written to skip the
+# placeholders a template legitimately contains (<user>, your-key, change-me,
+# REDACTED, ***).
+added=$(git diff --cached --unified=0 | grep '^+' | grep -v '^+++')
+
+check() {
+  # $1 = description, $2 = extended regex
+  hits=$(printf '%s\n' "$added" | grep -nEi -e "$2" | grep -viE '<[a-z_]+>|your-|your_|change-me|changeme|replace-|example\.com|REDACTED|\*\*\*|placeholder|xxx+|test-secret' | head -3)
+  [ -n "$hits" ] && note "$1" && printf '%s\n' "$hits" | sed 's/^/      /'
+}
+
+check "a database connection string with inline credentials" \
+      'mongo(db)?(\+srv)?://[^:/@[:space:]]+:[^@[:space:]]+@'
+check "a postgres/mysql/redis URL with inline credentials" \
+      '(postgres(ql)?|mysql|redis|amqp)://[^:/@[:space:]]+:[^@[:space:]]+@'
+check "a private key block" \
+      '-----BEGIN [A-Z ]*PRIVATE KEY-----'
+check "an AWS access key id" \
+      '(AKIA|ASIA)[0-9A-Z]{16}'
+check "a GitHub token" \
+      'gh[pousr]_[A-Za-z0-9]{20,}'
+check "a Google API key" \
+      'AIza[0-9A-Za-z_-]{30,}'
+check "a Stripe key" \
+      'sk_(live|test)_[0-9a-zA-Z]{16,}'
+# Assignment-shaped secrets: a key name that means "secret" with a value long
+# enough to be one. Deliberately loose, since --no-verify is one flag away.
+check "a secret assigned inline" \
+      '(api[_-]?secret|api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|password|passwd|jwt[_-]?secret)["'"'"']?\s*[:=]\s*["'"'"']?[A-Za-z0-9/+_-]{8,}'
+
+if [ "$fail" -ne 0 ]; then
+  printf '\n  Nothing has been committed. If a hit is a false positive:\n'
+  printf '    git commit --no-verify\n\n'
+  printf '  If a real credential has already been pushed, rotating it is the fix.\n'
+  printf '  Removing it in a later commit does not - the history keeps it.\n\n'
+  exit 1
+fi
+
+exit 0
