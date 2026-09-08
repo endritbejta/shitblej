@@ -1,12 +1,12 @@
 # Shitblej
 
-Shitblej is a full-stack marketplace for discovering, listing, negotiating, buying, and selling products across web and mobile.
+Shitblej is a full-stack marketplace for discovering, listing, negotiating, buying, and selling products.
 
 The name comes from the Albanian words **shit** (“sell”) and **blej** (“buy”).
 
 ## Overview
 
-Shitblej combines a versioned REST API, real-time marketplace events, a responsive web application, and an Expo mobile client in one repository.
+Shitblej combines a versioned REST API, real-time marketplace events, and a responsive web application in one repository. An Expo mobile client is also here, at an early prototype stage - see [Mobile](#3-mobile-early-prototype).
 
 Key capabilities include:
 
@@ -17,14 +17,14 @@ Key capabilities include:
 - Order-gated buyer and seller messaging
 - Real-time updates with Socket.IO
 - Cloudinary-backed image uploads
-- English, Albanian, and Serbian web localization
+- English, Albanian and Serbian locale files (currently applied to the site chrome; most page copy is still English only)
 
 ## Repository structure
 
 ```text
 shitblej/
 ├── backend/                   # Express API, Socket.IO, MongoDB, and tests
-├── frontend mobile/           # React Native application powered by Expo
+├── frontend mobile/           # Expo client - early prototype, not feature-complete
 ├── shitblej-frontend-web/     # React and Vite web application
 ├── netlify.toml               # Web deployment configuration
 └── README.md
@@ -36,8 +36,8 @@ shitblej/
 | --- | --- |
 | Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.IO, JWT, Zod, Cloudinary |
 | Web | React 19, Vite 7, React Router, Tailwind CSS, Axios, i18next, Swiper |
-| Mobile | React Native, Expo 52, Expo Router, NativeWind, Axios |
-| Testing | Jest, Supertest, MongoDB Memory Server |
+| Mobile (prototype) | React Native, Expo 52, Expo Router, NativeWind, Axios |
+| Testing | Jest, Supertest, MongoDB Memory Server (backend); Vitest, React Testing Library (web) |
 
 ## Marketplace workflow
 
@@ -95,6 +95,14 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 ```
 
+`backend/.env.example` documents the optional variables too. Two matter when
+deploying:
+
+| Variable | Default | Why it matters |
+| --- | --- | --- |
+| `TRUST_PROXY_HOPS` | `0` | Number of reverse proxies in front of the app, used to resolve the real client IP for rate limiting. **Set to `1` behind Render, Heroku or a single Nginx ingress.** Left at `0` there, every request looks like it came from the proxy, so one client can exhaust the login limit for everybody. `0` is correct locally. |
+| `NOTIFICATION_TTL_DAYS` | `90` | How long notifications are kept, enforced by a MongoDB TTL index. The first index build deletes anything older than the window; `0` disables expiry. |
+
 Start the API:
 
 ```bash
@@ -117,7 +125,18 @@ Open `http://localhost:5174`.
 
 The Vite development server proxies `/api` and `/socket.io` to `API_PROXY_TARGET`. When the variable is omitted, it uses the hosted API.
 
-### 3. Mobile application
+A production build does not use the proxy and needs the API origin instead:
+
+```env
+VITE_API_URL=https://your-api-host
+```
+
+The build fails without it rather than producing a bundle that requests
+relative paths, so this must be set wherever the site is built. For Netlify it
+lives in `netlify.toml` under `[build.environment]`. See
+`shitblej-frontend-web/.env.example`.
+
+### 3. Mobile (early prototype)
 
 From the repository root:
 
@@ -128,6 +147,17 @@ npm start
 ```
 
 Use the Expo terminal controls to open the project on iOS, Android, the web, or a physical device with Expo Go.
+
+**What actually works today.** This client browses the product list and opens
+a product page. It has no authentication, no offers or negotiation, no chat and
+no checkout, so none of the marketplace workflow described above is reachable
+from it. The Orders and Profile tabs render hardcoded placeholder data rather
+than anything from the API. Treat it as a starting point, not a second front
+end - the web application is the complete client.
+
+The API base URL is hardcoded to a LAN address in `app/(tabs)/index.tsx`, so
+it will not reach a backend on anyone else's machine without editing that
+value first.
 
 When testing against a local API from a physical device, use the development machine’s LAN address rather than `localhost`, and ensure both devices are on the same network.
 
@@ -151,6 +181,7 @@ When testing against a local API from a physical device, use the development mac
 | `npm run build` | Create a production build |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
+| `npm test` | Run the Vitest suite |
 
 ### Mobile
 
