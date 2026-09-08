@@ -69,10 +69,16 @@ class LocalUploadStorage {
           mimetype: file.mimetype,
         });
       })
-      .catch((err) => {
-        // Best effort: the partial file is useless either way, and the
-        // upload error is the one worth reporting.
-        fs.promises.unlink(destination).catch(() => {});
+      .catch(async (err) => {
+        // Await the unlink before reporting. Fire-and-forget looked fine on
+        // one machine and left the truncated file behind on another - the
+        // callback aborts the request, so nothing is waiting on this anyway,
+        // and a partial file surviving a crash straight afterwards is exactly
+        // the case worth covering.
+        //
+        // The unlink error is swallowed on purpose: the upload failure is the
+        // one worth reporting.
+        await fs.promises.unlink(destination).catch(() => {});
         cb(err);
       });
   }
