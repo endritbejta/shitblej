@@ -6,7 +6,7 @@ The name comes from the Albanian words **shit** (“sell”) and **blej** (“bu
 
 ## Overview
 
-Shitblej combines a versioned REST API, real-time marketplace events, and a responsive web application in one repository. An Expo mobile client is also here, at an early prototype stage - see [Mobile](#3-mobile-early-prototype).
+Shitblej combines a versioned REST API, real-time marketplace events, and a responsive web application in one repository.
 
 Key capabilities include:
 
@@ -24,7 +24,6 @@ Key capabilities include:
 ```text
 shitblej/
 ├── backend/                   # Express API, Socket.IO, MongoDB, and tests
-├── frontend mobile/           # Expo client - early prototype, not feature-complete
 ├── shitblej-frontend-web/     # React and Vite web application
 ├── netlify.toml               # Web deployment configuration
 └── README.md
@@ -36,7 +35,6 @@ shitblej/
 | --- | --- |
 | Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.IO, JWT, Zod, Cloudinary |
 | Web | React 19, Vite 7, React Router, Tailwind CSS, Axios, i18next, Swiper |
-| Mobile (prototype) | React Native, Expo 52, Expo Router, NativeWind, Axios |
 | Testing | Jest, Supertest, MongoDB Memory Server (backend); Vitest, React Testing Library (web) |
 
 ## Marketplace workflow
@@ -59,7 +57,6 @@ Message authorization is a server responsibility. Client-side controls improve t
 - npm
 - MongoDB, either locally or through MongoDB Atlas
 - A Cloudinary account for image uploads — optional locally, see `UPLOAD_DRIVER` below
-- Expo Go, an iOS Simulator, or an Android Emulator for mobile development
 
 Clone the repository:
 
@@ -169,31 +166,6 @@ relative paths, so this must be set wherever the site is built. For Netlify it
 lives in `netlify.toml` under `[build.environment]`. See
 `shitblej-frontend-web/.env.example`.
 
-### 3. Mobile (early prototype)
-
-From the repository root:
-
-```bash
-cd "frontend mobile"
-npm install
-npm start
-```
-
-Use the Expo terminal controls to open the project on iOS, Android, the web, or a physical device with Expo Go.
-
-**What actually works today.** This client browses the product list and opens
-a product page. It has no authentication, no offers or negotiation, no chat and
-no checkout, so none of the marketplace workflow described above is reachable
-from it. The Orders and Profile tabs render hardcoded placeholder data rather
-than anything from the API. Treat it as a starting point, not a second front
-end - the web application is the complete client.
-
-The API base URL is hardcoded to a LAN address in `app/(tabs)/index.tsx`, so
-it will not reach a backend on anyone else's machine without editing that
-value first.
-
-When testing against a local API from a physical device, use the development machine’s LAN address rather than `localhost`, and ensure both devices are on the same network.
-
 ## Available commands
 
 ### Backend
@@ -215,17 +187,6 @@ When testing against a local API from a physical device, use the development mac
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run the Vitest suite |
-
-### Mobile
-
-| Command | Description |
-| --- | --- |
-| `npm start` | Start the Expo development server |
-| `npm run ios` | Open the iOS development target |
-| `npm run android` | Open the Android development target |
-| `npm run web` | Open the Expo web target |
-| `npm run lint` | Run Expo linting |
-| `npm test` | Run Jest in watch mode |
 
 ## API modules
 

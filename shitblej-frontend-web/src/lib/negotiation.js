@@ -16,14 +16,14 @@ export const OFFER_STATUS_META = Object.freeze({
 });
 
 /** Which side of the table is this user on for a given offer? */
-export function partyOf(offer, userId) {
+function partyOf(offer, userId) {
   if (idOf(offer.buyer) === String(userId)) return "buyer";
   if (idOf(offer.seller) === String(userId)) return "seller";
   return null;
 }
 
 /** The party allowed to respond is always the one who did NOT propose. */
-export function recipientOf(offer) {
+function recipientOf(offer) {
   return offer.proposedBy === "buyer" ? "seller" : "buyer";
 }
 

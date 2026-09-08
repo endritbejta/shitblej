@@ -98,6 +98,16 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
     },
   });
 
+  // Per-conversation local state, cleared explicitly now that Inbox no longer
+  // remounts this component to do it (see the comment there). A half-typed
+  // message or an open counter/checkout dialog belongs to the thread it was
+  // started in, and must not follow the reader into the next one.
+  useEffect(() => {
+    setText("");
+    setCountering(null);
+    setCheckingOut(null);
+  }, [conversation.id]);
+
   // Keep the thread pinned to its newest message.
   //
   // Two distinct cases, and the old code ran the wrong one for both:

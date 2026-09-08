@@ -54,7 +54,6 @@ export default function Hero() {
       <div className="relative mx-auto max-w-container px-4 py-20 sm:px-6 sm:py-28 lg:py-36">
         <div className="max-w-2xl">
 
-
           <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
             Buy & sell,
             <br />
@@ -65,20 +64,6 @@ export default function Hero() {
             Discover thousands of curated pieces — from designer finds to rare
             collectibles. Sell yours in minutes.
           </p>
-
-          {/* Big search
-          <button
-            onClick={open}
-            className="group mt-8 flex w-full max-w-lg items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-left backdrop-blur-md transition-all duration-250 ease-premium hover:border-white/30 hover:bg-white/15"
-          >
-            <SearchIcon className="h-5 w-5 shrink-0 text-white/70" />
-            <span className="flex-1 text-white/60">
-              Search for anything — “vintage camera”, “sneakers”…
-            </span>
-            <span className="hidden shrink-0 items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-white transition-transform group-hover:translate-x-0.5 sm:flex">
-              Search <ArrowRight className="h-4 w-4" />
-            </span>
-          </button> */}
 
           {/* Quick category chips */}
           <div className="mt-6 flex flex-wrap items-center gap-2">
