@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getProducts } from "../api/products";
+import { queryKeys } from "../lib/queryClient";
 import Hero from "../components/home/Hero";
 import CategoryStrip from "../components/home/CategoryStrip";
 import ProductRail from "../components/home/ProductRail";
@@ -10,26 +12,14 @@ import SectionHeader from "../components/ui/SectionHeader";
 import ProductGrid from "../components/ui/ProductGrid";
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const params = { limit: 30, sort: "-createdAt" };
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await getProducts({ limit: 30, sort: "-createdAt" });
-        if (!cancelled) setProducts(data);
-      } catch {
-        if (!cancelled) setProducts([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Cached, so returning to the home page from a product renders instantly
+  // and revalidates behind the content instead of starting from empty.
+  const { data: products = [], isPending: loading } = useQuery({
+    queryKey: queryKeys.products(params),
+    queryFn: () => getProducts(params),
+  });
 
   // Derive the rails from a single fetch to keep the homepage to one request.
   const { trending, recent, luxury } = useMemo(() => {

@@ -5,7 +5,6 @@ import { queryClient } from "./lib/queryClient";
 import AppLayout from "./layouts/AppLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import { CollectionCacheProvider } from "./context/CollectionCacheContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { SearchProvider } from "./context/SearchContext";
 import ScrollToTop from "./components/ScrollToTop";
@@ -28,9 +27,8 @@ const WishlistPage = lazy(() => import("./pages/Wishlist"));
 export default function App() {
     return (
         <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-            <WishlistProvider>
-                <CollectionCacheProvider>
+            <AuthProvider>
+                <WishlistProvider>
                     <BrowserRouter>
                         <ScrollToTop />
                         <SearchProvider>
@@ -38,36 +36,35 @@ export default function App() {
                                 - or a failed lazy() chunk after a deploy -
                                 leaves a blank page with no way back. */}
                             <ErrorBoundary>
-                              <Suspense fallback={<Loading fullScreen />}>
-                                <Routes>
-                                    <Route path="products/:id" element={<ProductDetail />} />
-                                    <Route element={<AppLayout />}>
-                                        {/* Public routes */}
-                                        <Route index element={<Home />} />
-                                        <Route path="collections/:id" element={<CollectionPage />} />
-                                        <Route path="search" element={<SearchResults />} />
-                                        <Route path="wishlist" element={<WishlistPage />} />
-                                        <Route path="login" element={<Login />} />
-                                        <Route path="signup" element={<Signup />} />
+                                <Suspense fallback={<Loading fullScreen />}>
+                                    <Routes>
+                                        <Route path="products/:id" element={<ProductDetail />} />
+                                        <Route element={<AppLayout />}>
+                                            {/* Public routes */}
+                                            <Route index element={<Home />} />
+                                            <Route path="collections/:id" element={<CollectionPage />} />
+                                            <Route path="search" element={<SearchResults />} />
+                                            <Route path="wishlist" element={<WishlistPage />} />
+                                            <Route path="login" element={<Login />} />
+                                            <Route path="signup" element={<Signup />} />
 
-                                        {/* Protected routes */}
-                                        <Route element={<ProtectedRoute />}>
-                                            <Route path="sell" element={<Sell />} />
-                                            <Route path="inbox" element={<Inbox />} />
-                                            <Route path="profile" element={<Profile />} />
+                                            {/* Protected routes */}
+                                            <Route element={<ProtectedRoute />}>
+                                                <Route path="sell" element={<Sell />} />
+                                                <Route path="inbox" element={<Inbox />} />
+                                                <Route path="profile" element={<Profile />} />
+                                            </Route>
+
+                                            {/* 404 fallback */}
+                                            <Route path="*" element={<NotFound />} />
                                         </Route>
-
-                                        {/* 404 fallback */}
-                                        <Route path="*" element={<NotFound />} />
-                                    </Route>
-                                </Routes>
-                              </Suspense>
+                                    </Routes>
+                                </Suspense>
                             </ErrorBoundary>
                         </SearchProvider>
                     </BrowserRouter>
-                </CollectionCacheProvider>
-            </WishlistProvider>
-        </AuthProvider>
+                </WishlistProvider>
+            </AuthProvider>
         </QueryClientProvider>
     );
 }
