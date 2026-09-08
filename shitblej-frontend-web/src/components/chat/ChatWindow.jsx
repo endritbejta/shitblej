@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, Fragment } from "react";
+import { isNearBottom, scrollToBottom } from "../../lib/scroll";
 import { Send, ArrowLeft, Lock, Handshake } from "lucide-react";
 import SmartImage from "../ui/SmartImage";
 import OfferCard from "../offers/OfferCard";
@@ -74,8 +75,10 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
   const [text, setText] = useState("");
   const [countering, setCountering] = useState(null);
   const [checkingOut, setCheckingOut] = useState(null);
-  const endRef = useRef(null);
+  const listRef = useRef(null);
   const prevCount = useRef(0);
+  // Which conversation we have already positioned at its newest message.
+  const settledFor = useRef(null);
 
   const {
     timeline,
@@ -94,12 +97,38 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
     },
   });
 
+  // Keep the thread pinned to its newest message.
+  //
+  // Two distinct cases, and the old code ran the wrong one for both:
+  //
+  // Opening or switching a thread jumps INSTANTLY, and only this container
+  // moves. It used to call endRef.scrollIntoView({ behavior: "smooth" }),
+  // which scrolls every scrollable ancestor - so opening a chat animated the
+  // whole document downward as well as the message list.
+  //
+  // A message arriving while you watch scrolls smoothly, and only if you were
+  // already near the bottom; scrolling someone who deliberately went back to
+  // re-read something pulls it off their screen.
+  //
+  // It also never re-armed per conversation: prevCount persisted across
+  // switches, so moving from a 20-message thread to a 3-message one compared
+  // 3 > 20, and the shorter thread opened scrolled to the top.
   useEffect(() => {
-    if (timeline.length > prevCount.current) {
-      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    const list = listRef.current;
+    if (!list || loading) return;
+
+    if (settledFor.current !== conversation.id) {
+      scrollToBottom(list);
+      settledFor.current = conversation.id;
+      prevCount.current = timeline.length;
+      return;
+    }
+
+    if (timeline.length > prevCount.current && isNearBottom(list)) {
+      scrollToBottom(list, { smooth: true });
     }
     prevCount.current = timeline.length;
-  }, [timeline, typing]);
+  }, [timeline, typing, conversation.id, loading]);
 
   const groups = useMemo(() => groupByDay(timeline), [timeline]);
   const productContext = negotiation.latestOffer;
@@ -161,7 +190,7 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
       </div>
 
       {/* Timeline */}
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
+      <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
         {loading ? (
           <ThreadSkeleton />
         ) : timeline.length === 0 ? (
@@ -232,7 +261,6 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
         {error && !loading && (
           <p className="text-center text-xs text-red-500">{error}</p>
         )}
-        <div ref={endRef} />
       </div>
 
       {/* Composer — or the policy banner when the backend locked messaging */}
