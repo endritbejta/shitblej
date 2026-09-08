@@ -114,4 +114,20 @@
   .skeleton::after {
     animation: none;
   }
+
+  /* Exemption for the loading indicator.
+     The blanket rule above is deliberately blunt, but it also crushes any
+     reduced-motion FALLBACK an element defines - `animation-duration: 0.001ms`
+     with `!important` beats a Tailwind `motion-reduce:` variant. For a spinner
+     that is not a small regression: with nothing animating there is no signal
+     that the app is working at all, so the indicator becomes a static ring
+     indistinguishable from a rendering artifact.
+     Reduced motion asks for no MOVEMENT, not no feedback. The arc keeps
+     breathing on opacity alone - it does not travel, rotate or change
+     position - which is the gentler substitute the preference is asking for.
+     See components/ui/Spinner.jsx. */
+  [data-loader-arc] {
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
 }

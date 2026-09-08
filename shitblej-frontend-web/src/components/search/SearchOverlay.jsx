@@ -12,6 +12,7 @@ import {
   CornerDownLeft,
 } from "lucide-react";
 import { searchProducts } from "../../api/products";
+import Spinner from "../ui/Spinner";
 import { CATEGORIES, TRENDING_SEARCHES, FEATURED_COLLECTIONS } from "../../constants";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useRecentSearches } from "../../hooks/useRecentSearches";
@@ -311,11 +312,9 @@ export default function SearchOverlay({ open, onClose }) {
           {/* Results */}
           <div ref={listRef} className="max-h-[min(70vh,560px)] overflow-y-auto overscroll-contain p-2">
             {loading && hasQuery && (
-              <div className="flex items-center gap-2 px-3 py-6 text-sm text-gray-400">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-brand-500" style={{ animationDelay: "0ms" }} />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-brand-500" style={{ animationDelay: "120ms" }} />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-brand-500" style={{ animationDelay: "240ms" }} />
-                <span className="ml-1">Searching…</span>
+              <div className="flex animate-loader-in items-center gap-2 px-3 py-6 text-sm text-gray-400">
+                <Spinner size="sm" />
+                <span>Searching…</span>
               </div>
             )}
 
