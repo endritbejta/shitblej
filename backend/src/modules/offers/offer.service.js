@@ -11,6 +11,7 @@ const domainEvents = require("../../shared/events/domainEvents");
 const { eurosToCents, centsToEuros } = require("../../shared/utils/money");
 const { offerBounds, isWithinBounds, suggestedAmounts } = require("./offer.rules");
 const { containsContactInfo } = require("../../shared/utils/contactFilter");
+const logger = require("../../shared/logger");
 const {
   parsePagination,
   buildPageLinks,
@@ -97,7 +98,7 @@ const postOfferMessage = async (offer, senderId, receiverId) => {
       offer,
     });
   } catch (err) {
-    console.error("Failed to post offer message to chat:", err.message);
+    logger.error({ err, offerId: offer._id }, "failed to post offer message to chat");
   }
 };
 

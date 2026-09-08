@@ -1,5 +1,6 @@
 const ErrorResponse = require("../shared/utils/errorResponse");
 const config = require("../config");
+const logger = require("../shared/logger");
 
 // Database driver errors that are NOT one of the modelled cases below
 // (CastError, duplicate key, ValidationError). Their messages describe server
@@ -11,26 +12,32 @@ const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log detailed error for developers (only in development)
-  if (config.isDev) {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'.red);
-    console.log('ERROR DETAILS:'.red.bold);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'.red);
-    console.log('Name:'.yellow, err.name);
-    console.log('Message:'.yellow, err.message);
-    console.log('Status Code:'.yellow, err.statusCode || 500);
-    console.log('Path:'.yellow, req.path);
-    console.log('Method:'.yellow, req.method);
-    if (err.stack) {
-      console.log('Stack Trace:'.yellow);
-      console.log(err.stack.gray);
-    }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'.red);
-  } else if (config.env !== 'test') {
-    // Production: just log the error message. Silent in tests to keep
-    // jest output readable (expected 4xx errors would spam the console).
-    console.log(`Error: ${err.message}`.red);
-  }
+  // One structured line, carrying the request id so this can be tied back to
+  // the request that produced it and to everything else logged for it. The
+  // previous version drew a box of coloured console.log in development and
+  // wrote only the message in production, so a production error could not be
+  // traced to a caller at all.
+  //
+  // The level distinguishes a client's mistake from ours: a 400 is the API
+  // working as designed and should not page anyone, a 500 is a defect.
+  const status = err.statusCode || 500;
+  const level = status >= 500 ? "error" : "warn";
+
+  // `req.log` is the request-scoped child logger pino-http attaches; falling
+  // back keeps this usable when the handler is driven directly, as the tests do.
+  const log = req.log || logger;
+  log[level](
+    {
+      err,
+      status,
+      // Duplicated onto the line because a log search usually starts from one
+      // of these, and req serializers only run on the request-log line.
+      method: req.method,
+      path: req.path,
+      code: err.code,
+    },
+    err.message || "request failed"
+  );
 
   // Mongoose bad ObjectId (invalid ID format)
   if (err.name === "CastError") {

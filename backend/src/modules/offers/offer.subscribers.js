@@ -1,4 +1,5 @@
 const domainEvents = require("../../shared/events/domainEvents");
+const logger = require("../../shared/logger");
 const Offer = require("./offer.model");
 const { OFFER_STATUS, OFFER_EVENTS } = require("./offer.constants");
 const { PRODUCT_EVENTS } = require("../products/product.events");
@@ -43,7 +44,7 @@ const register = () => {
         })
       );
     } catch (err) {
-      console.error("Failed to cancel offers for deleted product:", err.message);
+      logger.error({ err, productId }, "failed to cancel offers for deleted product");
     }
   });
 };
