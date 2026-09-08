@@ -1,6 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "../lib/config";
-import { clearToken, getToken, notifyUnauthorized } from "../lib/authToken";
+import { clearSession, getToken, notifyUnauthorized } from "../lib/authToken";
 
 const client = axios.create({ baseURL: API_BASE_URL });
 
@@ -45,7 +45,7 @@ client.interceptors.response.use(
         // Drop the token and let AuthContext react (ProtectedRoute then sends
         // the user to /login).
         if (error.response?.status === 401 && !isCredentialCheck(error.config?.url)) {
-            clearToken();
+            clearSession();
             notifyUnauthorized();
         }
 
