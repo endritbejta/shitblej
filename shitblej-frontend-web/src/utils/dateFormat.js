@@ -32,10 +32,3 @@ export function formatConversationTime(dateString) {
     // Different year - show day, month, year
     return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
-
-// Format date for individual messages in chat (3:45 PM)
-export function formatMessageTime(dateString) {
-    const date = new Date(dateString);
-    if (!isValidDate(date)) return "";
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-}

@@ -1,6 +1,5 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
-require("colors"); // patches String.prototype with .red, .green, ...
 
 // load + validate env vars from the single source of truth
 const config = require("./src/config");
@@ -35,7 +34,7 @@ const importData = async () => {
 
     await Product.create(productsWithUsers);
 
-    console.log("Data imported...".green.inverse);
+    console.log("Data imported...");
     process.exit();
   } catch (error) {
     console.error(error);
@@ -47,7 +46,7 @@ const deleteData = async () => {
   try {
     await Product.deleteMany();
     await User.deleteMany();
-    console.log("Data destroyed...".red.inverse);
+    console.log("Data destroyed...");
     process.exit();
   } catch (error) {
     console.error(error);
