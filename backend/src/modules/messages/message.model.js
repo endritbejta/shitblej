@@ -39,9 +39,19 @@ const MessageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-});
+// See product.model.js: updatedAt only, so an explicitly-set createdAt
+// survives (several tests and the conversation ordering rely on it).
+}, { timestamps: { createdAt: false, updatedAt: true } });
 
+// Thread fetch: both legs of the pair filter, in reading order.
 MessageSchema.index({ sender: 1, receiver: 1, createdAt: 1 });
+
+// The inbox groups on `{ $or: [{ sender: me }, { receiver: me }] }`. Mongo
+// serves an $or by using one index per branch, and the composite above can
+// only serve the `sender` branch (receiver is not a prefix of it) - so the
+// receiver half of every inbox was a collection scan. This is that branch's
+// index; createdAt is included so the grouping sort is covered too.
+MessageSchema.index({ receiver: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", MessageSchema);
 Message.MESSAGE_TYPE = MESSAGE_TYPE;

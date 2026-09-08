@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../src/app");
+const app = require("./helpers/api").server;
 const db = require("./helpers/db");
 const { createUser, createProduct } = require("./helpers/factories");
 const SavedItem = require("../src/modules/savedItems/savedItem.model");
@@ -120,7 +120,9 @@ describe("PUT /api/v1/products/:id (ownership)", () => {
       .set("Authorization", `Bearer ${intruder.token}`)
       .send({ price: 1 });
 
-    expect(res.status).toBe(401);
+    // 403, not 401: the intruder IS authenticated, they just lack permission.
+    // Every other module already answered 403 for this; products did not.
+    expect(res.status).toBe(403);
   });
 });
 
