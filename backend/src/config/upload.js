@@ -35,6 +35,7 @@ const storage = isLocal
   ? new LocalUploadStorage({
       directory: config.uploads.directory,
       publicPath: config.uploads.publicPath,
+      publicBaseUrl: config.uploads.publicBaseUrl,
     })
   : new CloudinaryStorage({ cloudinary, params: CLOUDINARY_PARAMS });
 

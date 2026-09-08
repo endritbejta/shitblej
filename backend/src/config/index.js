@@ -35,6 +35,15 @@ const envSchema = z.object({
   UPLOAD_DRIVER: z.enum(["cloudinary", "local"]).default("cloudinary"),
   UPLOAD_DIR: z.string().min(1).default(".uploads"),
 
+  // Origin the stored image URLs point at, for UPLOAD_DRIVER=local.
+  //
+  // It has to be absolute. A root-relative "/uploads/x.png" resolves against
+  // whatever origin the page came from, which is the static host and not the
+  // API - so every image 404s the moment the frontend is served separately,
+  // which is exactly how this app is deployed. Cloudinary returns absolute
+  // URLs too, so the stored shape stays the same under either driver.
+  UPLOAD_PUBLIC_BASE_URL: z.string().url().optional(),
+
   // Cloudinary (image uploads). Required only when that driver is selected,
   // which is enforced in the refinement below rather than here - a plain
   // .min(1) would demand credentials from someone who deliberately chose not
@@ -69,6 +78,14 @@ const envSchema = z.object({
   // write-once render-data (see notification.model.js), not domain state, so
   // they would otherwise grow without bound. 0 disables expiry entirely.
   NOTIFICATION_TTL_DAYS: z.coerce.number().int().min(0).default(90),
+
+  // Rate limit overrides. The per-environment defaults below are the right
+  // answer almost always, but they were the ONLY answer: responding to a
+  // burst, or loosening the login limit for an end-to-end run, meant editing
+  // code and redeploying. Unset means "use the default for this environment".
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().optional(),
+  RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().optional(),
+  RATE_LIMIT_API_MAX: z.coerce.number().int().positive().optional(),
 });
 
 // Cross-field rules. These are the mistakes that would otherwise surface as a
@@ -127,10 +144,16 @@ const env = parsed.data;
 // unlimited: the suite drives hundreds of requests through one process from a
 // single address, and throttling it would test the limiter instead of the app.
 // The limiter itself is covered directly in tests/rateLimit.test.js.
-const RATE_LIMITS =
+const RATE_LIMIT_DEFAULTS =
   env.NODE_ENV === "test"
     ? { windowMs: 15 * 60 * 1000, authMax: 1e6, apiMax: 1e6 }
     : { windowMs: 15 * 60 * 1000, authMax: 10, apiMax: 300 };
+
+const RATE_LIMITS = {
+  windowMs: env.RATE_LIMIT_WINDOW_MS ?? RATE_LIMIT_DEFAULTS.windowMs,
+  authMax: env.RATE_LIMIT_AUTH_MAX ?? RATE_LIMIT_DEFAULTS.authMax,
+  apiMax: env.RATE_LIMIT_API_MAX ?? RATE_LIMIT_DEFAULTS.apiMax,
+};
 
 // Export a structured, frozen config object. Application code should read from
 // this module instead of touching process.env directly, so there is a single
@@ -169,6 +192,9 @@ const config = Object.freeze({
 
   uploads: {
     driver: env.UPLOAD_DRIVER,
+    publicBaseUrl: (
+      env.UPLOAD_PUBLIC_BASE_URL || `http://127.0.0.1:${env.PORT}`
+    ).replace(/\/+$/, ""),
     // Resolved to an absolute path here so nothing downstream depends on the
     // process working directory.
     directory: path.resolve(__dirname, "..", "..", env.UPLOAD_DIR),

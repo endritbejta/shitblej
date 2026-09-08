@@ -36,13 +36,15 @@ const limitHandler = (req, res) => {
 // hundreds of requests through an in-memory database and per-request counter
 // writes would only slow it down. The shared store is covered on its own in
 // tests/rateLimitStore.test.js.
-const resolveStore = (store) => {
+const resolveStore = (store, name) => {
   if (store) return store;
   if (config.env === "test") return null;
-  return new MongoRateLimitStore();
+  // Each limiter gets its own namespace. Without one they shared a counter,
+  // so browsing spent the login allowance - see rateLimitStore.js.
+  return new MongoRateLimitStore({ prefix: name ? `${name}:` : "" });
 };
 
-const createRateLimiter = ({ windowMs, max, store }) => {
+const createRateLimiter = ({ windowMs, max, store, name }) => {
   const options = {
     windowMs,
     limit: max,
@@ -51,7 +53,7 @@ const createRateLimiter = ({ windowMs, max, store }) => {
     handler: limitHandler,
   };
 
-  const shared = resolveStore(store);
+  const shared = resolveStore(store, name);
   if (shared) options.store = shared;
 
   return rateLimit(options);
@@ -59,12 +61,14 @@ const createRateLimiter = ({ windowMs, max, store }) => {
 
 // Credential endpoints: login and register.
 const authLimiter = createRateLimiter({
+  name: "auth",
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.authMax,
 });
 
 // Everything under /api/v1.
 const apiLimiter = createRateLimiter({
+  name: "api",
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.apiMax,
 });
