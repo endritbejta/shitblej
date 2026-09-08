@@ -52,6 +52,39 @@ describe("GET /api/v1/users/:id response scoping", () => {
   });
 });
 
+describe("GET /api/v1/users/me", () => {
+  // Exists so a client never has to decode the JWT to learn its own id, which
+  // is what the web app was doing.
+  it("returns the caller's own profile, contact details included", async () => {
+    const alice = await createUser();
+
+    const res = await request(app)
+      .get("/api/v1/users/me")
+      .set("Authorization", `Bearer ${alice.token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data._id).toBe(String(alice.user._id));
+    expect(res.body.data.email).toBe(alice.user.email);
+  });
+
+  it("requires authentication", async () => {
+    const res = await request(app).get("/api/v1/users/me");
+    expect(res.status).toBe(401);
+  });
+
+  it("is not shadowed by the /:id route", async () => {
+    const alice = await createUser();
+
+    // Declared after "/:id" it would be captured as an id, fail the ObjectId
+    // check and answer 400.
+    const res = await request(app)
+      .get("/api/v1/users/me")
+      .set("Authorization", `Bearer ${alice.token}`);
+
+    expect(res.status).not.toBe(400);
+  });
+});
+
 describe("GET /api/v1/products query hardening", () => {
   it("ignores Mongo operators smuggled in as query keys", async () => {
     const { user } = await createUser();
