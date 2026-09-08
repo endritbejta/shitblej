@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../../src/app");
+const app = require("../helpers/api").server;
 const Product = require("../../src/modules/products/product.model");
 
 let counter = 0;

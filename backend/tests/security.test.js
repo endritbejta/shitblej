@@ -1,6 +1,6 @@
 const request = require("supertest");
 const express = require("express");
-const app = require("../src/app");
+const app = require("./helpers/api").server;
 const db = require("./helpers/db");
 const { createUser, createProduct } = require("./helpers/factories");
 const { createRateLimiter } = require("../src/middleware/rateLimit");
