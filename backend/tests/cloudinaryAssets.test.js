@@ -116,6 +116,71 @@ describe("deleting a listing releases its hosted images", () => {
   });
 });
 
+describe("replacing an avatar releases the old one", () => {
+  let destroySpy;
+  beforeEach(() => {
+    destroySpy = jest
+      .spyOn(cloudinary.uploader, "destroy")
+      .mockResolvedValue({ result: "ok" });
+  });
+  afterEach(() => destroySpy.mockRestore());
+
+  const settle = () => new Promise((resolve) => setImmediate(resolve));
+  const User = require("../src/modules/users/user.model");
+
+  it("destroys the previous avatar", async () => {
+    const alice = await createUser();
+    await User.findByIdAndUpdate(alice.user._id, {
+      image: `${CDN}/v1/shitblej-products/old-avatar.jpg`,
+    });
+
+    // The route runs multer before validation, so drive the service directly
+    // rather than uploading to Cloudinary for real.
+    const userService = require("../src/modules/users/user.service");
+    await userService.updateUser({
+      id: String(alice.user._id),
+      updates: {},
+      imagePath: `${CDN}/v1/shitblej-products/new-avatar.jpg`,
+    });
+
+    await settle();
+
+    // Every profile-picture change used to leave the old file behind forever.
+    expect(destroySpy).toHaveBeenCalledWith(
+      "shitblej-products/old-avatar",
+      expect.objectContaining({ invalidate: true })
+    );
+  });
+
+  it("leaves the placeholder default alone", async () => {
+    const alice = await createUser();
+    const userService = require("../src/modules/users/user.service");
+
+    // New accounts get a via.placeholder.com URL, which is not ours to delete.
+    await userService.updateUser({
+      id: String(alice.user._id),
+      updates: {},
+      imagePath: `${CDN}/v1/shitblej-products/first-avatar.jpg`,
+    });
+
+    await settle();
+    expect(destroySpy).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when no new image was uploaded", async () => {
+    const alice = await createUser();
+    const userService = require("../src/modules/users/user.service");
+
+    await userService.updateUser({
+      id: String(alice.user._id),
+      updates: { name: "Renamed" },
+    });
+
+    await settle();
+    expect(destroySpy).not.toHaveBeenCalled();
+  });
+});
+
 describe("a rejected upload does not leave orphans", () => {
   let destroySpy;
   beforeEach(() => {

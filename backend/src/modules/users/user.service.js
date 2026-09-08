@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("./user.model");
 const ErrorResponse = require("../../shared/utils/errorResponse");
+const { destroyByUrls } = require("../../shared/utils/cloudinaryAssets");
 
 // Two response shapes, because "who is this user" has two different answers
 // depending on who is asking.
@@ -103,6 +104,11 @@ exports.updateUser = async ({ id, updates = {}, imagePath }) => {
     throw new ErrorResponse("No data provided for update", 400);
   }
 
+  // Needed before the update to know which asset the new avatar replaces.
+  const previousImage = imagePath
+    ? await User.findById(id).select("image").lean()
+    : null;
+
   const user = await User.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
@@ -111,6 +117,16 @@ exports.updateUser = async ({ id, updates = {}, imagePath }) => {
 
   if (!user) {
     throw new ErrorResponse(`User not found with id of ${id}`, 404);
+  }
+
+  // Release the avatar this one replaced. Without it every profile-picture
+  // change left the old file in Cloudinary forever - the same leak that was
+  // closed for failed uploads and deleted listings, on the one path left over.
+  // Not awaited: the profile is already saved, and a Cloudinary outage must
+  // not fail the request. Non-Cloudinary URLs (the placeholder default) are
+  // skipped by the helper.
+  if (previousImage && previousImage.image && previousImage.image !== imagePath) {
+    destroyByUrls([previousImage.image]).catch(() => {});
   }
 
   // Only the owner or an admin reaches this route, so the full shape is right.

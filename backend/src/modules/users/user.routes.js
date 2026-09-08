@@ -4,6 +4,7 @@ const {
   registerUser,
   loginUser,
   getUsers,
+  getMe,
   getUser,
   updateUser,
   deleteUser,
@@ -33,6 +34,10 @@ router.post("/login", authLimiter, validate(loginSchema), loginUser);
 // --- User management ---
 // Get all users - Admin only
 router.get("/", protect, authorize("admin"), getUsers);
+
+// The authenticated user. Declared before "/:id" so "me" is not captured as
+// an id (which would fail the ObjectId check and 400).
+router.get("/me", protect, getMe);
 
 // Get single user - any authenticated user can view. The response is scoped
 // to the caller: parties see a seller's public profile, and contact details

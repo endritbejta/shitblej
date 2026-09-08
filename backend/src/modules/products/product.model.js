@@ -25,6 +25,11 @@ const ProductSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: [true, "Please add a price"],
+    // Zod already rejects a non-positive price at the API edge, but the seeder
+    // and any future import write straight to the model. A negative asking
+    // price also makes the offer bounds nonsensical - minCents ends up above
+    // maxCents, so no offer can ever be valid on that listing.
+    min: [0.01, "Price must be greater than 0"],
   },
   category: {
     type: String,
