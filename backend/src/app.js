@@ -71,6 +71,19 @@ if (config.uploads.driver === "local") {
       // No directory listing, and no falling through to the SPA.
       index: false,
       fallthrough: false,
+      setHeaders: (res) => {
+        // helmet applies Cross-Origin-Resource-Policy: same-origin to
+        // everything, which is right for an API but blocks the browser from
+        // rendering these images: the frontend is served from a different
+        // origin, so every <img> failed silently - a clean 200 over curl and
+        // a blank thumbnail in the page. Found by the end-to-end run, because
+        // it is invisible to a request-level test.
+        //
+        // Relaxed for this path only. These are public product images, which
+        // is precisely what cross-origin is for; the rest of the API keeps
+        // same-origin.
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      },
     })
   );
 }

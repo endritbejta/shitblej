@@ -35,14 +35,18 @@ describe("LocalUploadStorage", () => {
   });
 
   it("writes the file and reports it under the same property names as the Cloudinary engine", async () => {
-    const storage = new LocalUploadStorage({ directory: dir, publicPath: "/uploads" });
+    const storage = new LocalUploadStorage({
+      directory: dir,
+      publicPath: "/uploads",
+      publicBaseUrl: "http://127.0.0.1:3000",
+    });
 
     const info = await handle(storage, fakeFile("pretend-png-bytes"));
 
     // These four names are the engine contract - product.images stores `path`,
     // cleanup works from `filename`. A driver that returned different keys
     // would break the app rather than the test.
-    expect(info.path).toBe(`/uploads/${info.filename}`);
+    expect(info.path).toBe(`http://127.0.0.1:3000/uploads/${info.filename}`);
     expect(info.mimetype).toBe("image/png");
     expect(info.size).toBe(Buffer.byteLength("pretend-png-bytes"));
 
@@ -175,5 +179,109 @@ describe("UPLOAD_DRIVER configuration", () => {
     const { status, stderr } = bootConfig({ UPLOAD_DRIVER: "s3" });
     expect(status).toBe(1);
     expect(stderr).toContain("UPLOAD_DRIVER");
+  });
+});
+
+describe("rate limit overrides", () => {
+  const readLimits = (env) => {
+    const { status, stdout, stderr } = spawnSync(
+      process.execPath,
+      ["-e", "process.stdout.write(JSON.stringify(require('./src/config').rateLimit))"],
+      {
+        cwd: path.join(__dirname, ".."),
+        encoding: "utf8",
+        env: {
+          PATH: process.env.PATH,
+          MONGO_URI: "mongodb://127.0.0.1:27017/x",
+          JWT_SECRET: "s",
+          CLIENT_URL: "http://localhost:5173",
+          UPLOAD_DRIVER: "local",
+          ...env,
+        },
+      }
+    );
+    if (status !== 0) throw new Error(stderr);
+    return JSON.parse(stdout);
+  };
+
+  it("uses the environment default when nothing is set", () => {
+    expect(readLimits({})).toEqual({
+      windowMs: 15 * 60 * 1000,
+      authMax: 10,
+      apiMax: 300,
+    });
+  });
+
+  it("lets each limit be overridden independently", () => {
+    // The point is operational: responding to a burst, or loosening the login
+    // limit for an end-to-end run, should not require a code change.
+    expect(readLimits({ RATE_LIMIT_AUTH_MAX: "500" })).toEqual({
+      windowMs: 15 * 60 * 1000,
+      authMax: 500,
+      apiMax: 300,
+    });
+    expect(readLimits({ RATE_LIMIT_WINDOW_MS: "60000", RATE_LIMIT_API_MAX: "50" })).toEqual({
+      windowMs: 60000,
+      authMax: 10,
+      apiMax: 50,
+    });
+  });
+
+  it("rejects a limit that would disable throttling by accident", () => {
+    // 0 or a negative number is far more likely to be a typo than an intent,
+    // and either would let the login endpoint be brute-forced.
+    for (const value of ["0", "-1", "abc"]) {
+      const { status, stderr } = spawnSync(
+        process.execPath,
+        ["-e", "require('./src/config')"],
+        {
+          cwd: path.join(__dirname, ".."),
+          encoding: "utf8",
+          env: {
+            PATH: process.env.PATH,
+            MONGO_URI: "mongodb://127.0.0.1:27017/x",
+            JWT_SECRET: "s",
+            CLIENT_URL: "http://localhost:5173",
+            UPLOAD_DRIVER: "local",
+            RATE_LIMIT_AUTH_MAX: value,
+          },
+        }
+      );
+      expect(status).toBe(1);
+      expect(stderr).toContain("RATE_LIMIT_AUTH_MAX");
+    }
+  });
+});
+
+describe("stored upload URLs", () => {
+  it("are absolute, so they resolve from a separately-hosted frontend", () => {
+    const storage = new LocalUploadStorage({
+      directory: "/tmp/whatever",
+      publicPath: "/uploads",
+      publicBaseUrl: "https://api.example.com/",
+    });
+    // Trailing slash trimmed, so the URL never doubles up.
+    expect(storage.publicBaseUrl).toBe("https://api.example.com");
+  });
+
+  it("defaults the origin to this process's own port", () => {
+    const { status, stdout } = spawnSync(
+      process.execPath,
+      ["-e", "process.stdout.write(require('./src/config').uploads.publicBaseUrl)"],
+      {
+        cwd: path.join(__dirname, ".."),
+        encoding: "utf8",
+        env: {
+          PATH: process.env.PATH,
+          MONGO_URI: "mongodb://127.0.0.1:27017/x",
+          JWT_SECRET: "s",
+          CLIENT_URL: "http://localhost:5173",
+          UPLOAD_DRIVER: "local",
+          PORT: "4321",
+        },
+      }
+    );
+    expect(status).toBe(0);
+    expect(stdout).toBe("http://127.0.0.1:4321");
   });
 });

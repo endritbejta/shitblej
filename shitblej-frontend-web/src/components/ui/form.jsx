@@ -21,7 +21,15 @@ function Field({ label, htmlFor, required, error, hint, descId, className, child
           className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           {label}
-          {required && <span className="ml-0.5 text-brand-600 dark:text-brand-400">*</span>}
+          {/* Decoration only. Without aria-hidden the asterisk joins the
+              label's accessible name, so a screen reader announces
+              "Password star" - and the requirement is already conveyed by the
+              input's own `required`, which is what assistive tech reads. */}
+          {required && (
+            <span aria-hidden="true" className="ml-0.5 text-brand-600 dark:text-brand-400">
+              *
+            </span>
+          )}
         </label>
       )}
       {children}
@@ -56,6 +64,7 @@ export const TextField = forwardRef(function TextField(
         <input
           ref={ref}
           id={fieldId}
+          aria-required={required || undefined}
           aria-invalid={!!error || undefined}
           aria-describedby={descId}
           className={cn(controlBase, controlPad, error ? borderError : borderNormal, leading && "pl-10", trailing && "pr-11")}
@@ -80,6 +89,7 @@ export const TextArea = forwardRef(function TextArea(
         ref={ref}
         id={fieldId}
         rows={rows}
+        aria-required={required || undefined}
         aria-invalid={!!error || undefined}
         aria-describedby={descId}
         className={cn(controlBase, "resize-none px-3.5 py-3 text-sm", error ? borderError : borderNormal)}
@@ -102,6 +112,7 @@ export const SelectField = forwardRef(function SelectField(
         <select
           ref={ref}
           id={fieldId}
+          aria-required={required || undefined}
           aria-invalid={!!error || undefined}
           aria-describedby={descId}
           className={cn(controlBase, controlPad, "appearance-none pr-10", error ? borderError : borderNormal)}
