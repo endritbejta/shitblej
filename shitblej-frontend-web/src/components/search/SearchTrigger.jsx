@@ -7,12 +7,13 @@ import { cn } from "../../utils/cn";
  * (desktop); `variant="icon"` is the compact icon (mobile). Opening + keyboard
  * shortcuts are handled by the SearchProvider.
  */
-export default function SearchTrigger({ variant = "bar", className }) {
+export default function SearchTrigger({ variant = "bar", className, id }) {
   const { open } = useSearch();
 
   if (variant === "icon") {
     return (
       <button
+        id={id}
         onClick={open}
         aria-label="Search"
         className={cn(
@@ -27,6 +28,7 @@ export default function SearchTrigger({ variant = "bar", className }) {
 
   return (
     <button
+      id={id}
       onClick={open}
       aria-label="Search"
       className={cn(

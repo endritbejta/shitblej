@@ -40,7 +40,16 @@ export default function CategoryNav() {
       onMouseLeave={scheduleClose}
     >
       <Container>
-        <nav className="no-scrollbar flex items-center gap-0.5 overflow-x-auto py-1.5">
+        {/* The skip-link target. tabIndex={-1} so it can receive focus from
+            `#main-navigation` - a <nav> is not focusable otherwise, and the
+            browser would only scroll to it. aria-label because a page can hold
+            several <nav>s and "Main" is what distinguishes this one. */}
+        <nav
+          id="main-navigation"
+          tabIndex={-1}
+          aria-label="Main"
+          className="no-scrollbar flex items-center gap-0.5 overflow-x-auto py-1.5"
+        >
           {CATEGORIES.map((cat) => {
             const hasChildren = cat.children?.length > 0;
             const isActive = active === cat.id;

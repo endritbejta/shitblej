@@ -109,7 +109,15 @@ export default function ProductDetail() {
             {/* Desktop View */}
             <div className="hidden md:block min-h-screen flex flex-col dark:bg-black">
                 <Header />
-                <main className="flex-1 px-4 py-6 max-w-6xl w-full mx-auto pt-32">
+                {/* This page renders its own Header and main rather than
+                    using AppLayout, so it needs the target too. The two <main>
+                    elements never coexist - they are different routes - so the
+                    id is unique at runtime. */}
+                <main
+                    id="main-content"
+                    tabIndex={-1}
+                    className="flex-1 px-4 py-6 max-w-6xl w-full mx-auto pt-32"
+                >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                         {/* Left Column: Images */}
                         <ProductImageGallery 
