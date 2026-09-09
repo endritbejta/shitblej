@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import { injectHeroPreload, inlineEntryCss } from "./vite-plugins.js";
+import { emitSitemap, injectHeroPreload, inlineEntryCss } from "./vite-plugins.js";
 
 // The dev server proxies /api to the backend to avoid CORS.
 // Defaults to the hosted backend so the frontend works standalone (products,
@@ -28,7 +28,7 @@ export default defineConfig(({ command, mode }) => {
     // injectHeroPreload puts the LCP image in the initial document; without it
     // the image cannot be discovered until React has mounted. inlineEntryCss
     // removes the one render-blocking request. See vite-plugins.js.
-    plugins: [react(), injectHeroPreload(), inlineEntryCss()],
+    plugins: [react(), injectHeroPreload(), inlineEntryCss(), emitSitemap()],
 
     build: {
       // Never inline the theme-conditional logo variants.
