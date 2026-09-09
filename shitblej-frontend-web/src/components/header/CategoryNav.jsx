@@ -123,7 +123,7 @@ export default function CategoryNav() {
               <Link
                 to={`/collections/${activeCategory.id}`}
                 onClick={() => setActive(null)}
-                className="group hidden shrink-0 items-center gap-1.5 self-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 dark:bg-white dark:text-black dark:hover:bg-brand-500 dark:hover:text-white lg:inline-flex"
+                className="group hidden shrink-0 items-center gap-1.5 self-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 dark:bg-white dark:text-black dark:hover:bg-brand-600 dark:hover:text-white lg:inline-flex"
               >
                 View all
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

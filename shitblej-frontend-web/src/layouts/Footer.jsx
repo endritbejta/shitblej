@@ -15,7 +15,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 lg:col-span-2">
-            <Link to="/" className="text-2xl font-extrabold tracking-tighter text-brand-500">
+            <Link to="/" className="text-2xl font-extrabold tracking-tighter text-brand-600 dark:text-brand-400">
               SHITBLEJ
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500 dark:text-gray-400">
@@ -74,7 +74,7 @@ const Footer = () => {
               <button
                 type="submit"
                 aria-label="Subscribe"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-500 text-white transition-colors hover:bg-brand-600"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-600 text-white transition-colors hover:bg-brand-700"
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -89,8 +89,8 @@ const Footer = () => {
           </p>
           <div className="flex items-center gap-6">
             <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-500">
-              <Link to="#" className="transition-colors hover:text-brand-500">{t("footer.privacy")}</Link>
-              <Link to="#" className="transition-colors hover:text-brand-500">{t("footer.terms")}</Link>
+              <Link to="#" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">{t("footer.privacy")}</Link>
+              <Link to="#" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">{t("footer.terms")}</Link>
             </div>
             <LanguageSwitcher />
           </div>
@@ -104,7 +104,7 @@ const SocialLink = ({ href, icon, label }) => (
   <a
     href={href}
     aria-label={label}
-    className="grid h-9 w-9 place-items-center rounded-full bg-gray-200 text-gray-600 transition-all duration-250 hover:bg-brand-500 hover:text-white dark:bg-zinc-800 dark:text-gray-400"
+    className="grid h-9 w-9 place-items-center rounded-full bg-gray-200 text-gray-600 transition-all duration-250 hover:bg-brand-600 hover:text-white dark:bg-zinc-800 dark:text-gray-400"
   >
     {icon}
   </a>

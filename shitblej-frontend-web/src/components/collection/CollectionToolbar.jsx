@@ -113,7 +113,7 @@ export default function CollectionToolbar({
           >
             <SlidersHorizontal className="h-4 w-4" /> Filters
             {activeCount > 0 && (
-              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-500 px-1 text-[11px] font-semibold text-white">
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1 text-[11px] font-semibold text-white">
                 {activeCount}
               </span>
             )}
@@ -134,7 +134,7 @@ export default function CollectionToolbar({
               className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-zinc-800/60"
             >
               {s.label}
-              {filters.sort === s.id && <Check className="h-4 w-4 text-brand-500" />}
+              {filters.sort === s.id && <Check className="h-4 w-4 text-brand-600 dark:text-brand-400" />}
             </button>
           ))}
         </div>

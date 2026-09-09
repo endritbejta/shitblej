@@ -2,7 +2,16 @@
 export default {
   // Follow the operating-system colour scheme (no in-app theme toggle).
   darkMode: "media",
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    // Tests are scanned otherwise, and a class name written in a test - even
+    // inside a comment - generates a real utility and ships it. brandContrast
+    // .test.js mentions `text-green-600` while explaining why that palette was
+    // removed, which was enough to put the rule back into the bundle. Nothing
+    // in a test needs CSS: jsdom applies no stylesheet.
+    "!./src/**/*.test.{js,jsx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -14,10 +23,17 @@ export default {
           300: "#86efac",
           400: "#4ade80",
           500: "#22c55e",
-          600: "#16a34a",
-          700: "#15803d",
-          800: "#166534",
-          900: "#14532d",
+          // 500 and below are Tailwind's green verbatim, because 500 is a
+          // background 45 times over. From 600 down the ramp is shifted one
+          // step darker so brand-600 clears 4.5:1 on white (WCAG 1.4.3):
+          // Tailwind's own green-600 is 3.30:1, which is why every text and
+          // white-on-green use of it failed. brand-600 is therefore the
+          // light-mode accent and dark mode uses brand-400 - it does NOT clear
+          // AA on black. src/lib/brandContrast.test.js holds all of this.
+          600: "#15803d",
+          700: "#166534",
+          800: "#14532d",
+          900: "#0a3d1e",
         },
       },
       fontFamily: {

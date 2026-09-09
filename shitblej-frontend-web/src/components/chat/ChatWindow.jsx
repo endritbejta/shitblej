@@ -258,7 +258,7 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
                       className={cn(
                         "max-w-[78%] rounded-2xl px-3.5 py-2 text-sm sm:max-w-[70%]",
                         isOwn
-                          ? "rounded-br-md bg-brand-500 text-white"
+                          ? "rounded-br-md bg-brand-600 text-white"
                           : "rounded-bl-md border border-gray-200 bg-white text-gray-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
                       )}
                     >
@@ -299,7 +299,7 @@ export default function ChatWindow({ conversation, user, onBack, typing = false 
             type="submit"
             disabled={!text.trim()}
             aria-label="Send message"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-500 text-white transition-all hover:bg-brand-600 disabled:opacity-40 disabled:hover:bg-brand-500"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-600 text-white transition-all hover:bg-brand-700 disabled:opacity-40 disabled:hover:bg-brand-600"
           >
             <Send className="h-[18px] w-[18px]" />
           </button>

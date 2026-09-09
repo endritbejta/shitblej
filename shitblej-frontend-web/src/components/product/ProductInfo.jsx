@@ -32,7 +32,7 @@ export default function ProductInfo({ product, isMobile = false }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold text-green-600 dark:text-green-500">${product.price}</span>
+                        <span className="text-2xl font-bold text-brand-600 dark:text-brand-500">${product.price}</span>
                         <WishlistButton product={product} variant="surface" stopNavigation={false} />
                     </div>
                 </div>
@@ -68,11 +68,11 @@ export default function ProductInfo({ product, isMobile = false }) {
                 <div className="flex justify-between items-start">
                     <div>
                         <nav className="text-sm text-gray-500 mb-6 hidden md:block">
-                            <Link to="/" className="hover:text-green-500">Home</Link> / 
+                            <Link to="/" className="hover:text-brand-600 dark:hover:text-brand-400">Home</Link> / 
                             <span className="mx-1">Products</span> / 
                             <span className="text-gray-900 dark:text-white font-medium ml-1">{product.name}</span>
                         </nav>
-                        <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-semibold rounded-full mb-3">
+                        <span className="inline-block px-3 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs font-semibold rounded-full mb-3">
                             {product.condition || "Used - Good"}
                         </span>
                         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
@@ -89,7 +89,7 @@ export default function ProductInfo({ product, isMobile = false }) {
                     <WishlistButton product={product} variant="surface" size="lg" stopNavigation={false} />
                 </div>
                 <div className="mt-6">
-                    <span className="text-4xl font-bold text-green-600 dark:text-green-500">
+                    <span className="text-4xl font-bold text-brand-600 dark:text-brand-500">
                         ${product.price}
                     </span>
                 </div>

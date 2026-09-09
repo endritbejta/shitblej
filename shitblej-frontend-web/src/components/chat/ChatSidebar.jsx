@@ -116,7 +116,7 @@ export default function ChatSidebar({ conversations, selectedId, onSelect, loadi
                       {conv.lastMessage || "Start the conversation"}
                     </p>
                     {unread && (
-                      <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-brand-500 px-1.5 text-[11px] font-bold text-white">
+                      <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-brand-600 px-1.5 text-[11px] font-bold text-white">
                         {conv.unread > 9 ? "9+" : conv.unread}
                       </span>
                     )}

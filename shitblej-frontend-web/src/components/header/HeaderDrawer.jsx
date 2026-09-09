@@ -55,7 +55,7 @@ const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen }) => {
             <div className="flex flex-col gap-2 my-2 px-4 md:hidden">
                 {user ? (
                     <>
-                        <Link to="/sell" className="bg-green-500 text-white py-3 rounded-xl text-center font-bold shadow-lg shadow-green-500/20" onClick={() => setHeaderDrawerOpen(false)}>
+                        <Link to="/sell" className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold shadow-lg shadow-brand-500/20" onClick={() => setHeaderDrawerOpen(false)}>
                             SELL ITEMS
                         </Link>
                         <Link to="/inbox" className="bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-medium" onClick={() => setHeaderDrawerOpen(false)}>
@@ -69,7 +69,7 @@ const HeaderDrawer = ({ headerDrawerOpen, setHeaderDrawerOpen }) => {
                         </button>
                     </>
                 ) : (
-                    <Link to="/login" className="bg-green-500 text-white py-3 rounded-xl text-center font-bold shadow-lg shadow-green-500/20" onClick={() => setHeaderDrawerOpen(false)}>
+                    <Link to="/login" className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold shadow-lg shadow-brand-500/20" onClick={() => setHeaderDrawerOpen(false)}>
                         SIGN IN
                     </Link>
                 )}

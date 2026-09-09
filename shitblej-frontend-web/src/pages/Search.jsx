@@ -35,7 +35,7 @@ export default function SearchResults() {
               <Link
                 key={t}
                 to={`/search?q=${encodeURIComponent(t)}`}
-                className="chip transition-colors hover:!bg-brand-500 hover:!text-white"
+                className="chip transition-colors hover:!bg-brand-600 hover:!text-white"
               >
                 {t}
               </Link>
