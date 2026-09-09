@@ -1,4 +1,5 @@
 import { HERO_SIZES, HERO_SRC, HERO_SRCSET } from "./src/lib/heroImage.js";
+import { CRAWLABLE_ROUTES } from "./src/lib/siteRoutes.js";
 
 // Build-time changes to index.html. Both exist because this is a
 // client-rendered SPA: index.html ships an empty #root, so anything the
@@ -98,8 +99,6 @@ export function inlineEntryCss({ maxBytes = 96 * 1024 } = {}) {
           if (!asset || asset.type !== "asset") continue;
 
           const css = String(asset.source);
-          // TextEncoder rather than Buffer: this file is linted with the same
-          // browser globals as the app, and byte length is all that is needed.
           if (new TextEncoder().encode(css).length > maxBytes) continue;
 
           out = out.replace(tag, `<style>${css}</style>`);
@@ -110,6 +109,49 @@ export function inlineEntryCss({ maxBytes = 96 * 1024 } = {}) {
 
         return out;
       },
+    },
+  };
+}
+
+/**
+ * Emit sitemap.xml from the crawlable route list.
+ *
+ * Generated rather than checked in so it cannot drift from the categories: the
+ * routes come from src/lib/siteRoutes.js, and a test there asserts every
+ * category in constants/index.js has an entry.
+ *
+ * The origin comes from the build environment - Netlify sets `URL` - because a
+ * sitemap must use absolute URLs, and a deploy preview advertising production
+ * URLs would be wrong.
+ */
+export function emitSitemap({
+  origin = process.env.SITE_URL || process.env.URL || "https://shitblej.netlify.app",
+} = {}) {
+  return {
+    name: "emit-sitemap",
+    apply: "build",
+    generateBundle() {
+      const base = origin.replace(/\/+$/, "");
+      const today = new Date().toISOString().slice(0, 10);
+
+      const urls = CRAWLABLE_ROUTES.map(
+        ({ path, priority, changefreq }) => `  <url>
+    <loc>${base}${path}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`
+      ).join("\n");
+
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`,
+      });
     },
   };
 }

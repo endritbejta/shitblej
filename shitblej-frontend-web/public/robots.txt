@@ -1,0 +1,23 @@
+# Shitblej — https://shitblej.netlify.app
+#
+# This file has to exist as a real file. Netlify rewrites every unmatched path
+# to /index.html with a 200 (see netlify.toml), so without it a request for
+# /robots.txt answered with the app's HTML - and a robots parser reading
+# "<!doctype html>" as a directive reported one error per line. A missing
+# robots.txt would have been fine; a 200 of HTML was not.
+
+User-agent: *
+Allow: /
+
+# Behind ProtectedRoute: a crawler is redirected to /login, so indexing these
+# would put a sign-in page in results under three separate URLs.
+Disallow: /sell
+Disallow: /inbox
+Disallow: /profile
+
+# Public, but personal - a crawler's wishlist is always empty.
+Disallow: /wishlist
+
+# Absolute by spec. Points at production even from a deploy preview, which is
+# harmless: previews should not be indexed at all.
+Sitemap: https://shitblej.netlify.app/sitemap.xml

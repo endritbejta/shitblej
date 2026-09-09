@@ -30,7 +30,8 @@ export default defineConfig([
     },
   },
   {
-    files: ['vite.config.js'],
+    // Build tooling: these run in Node, not the browser.
+    files: ['vite.config.js', 'vite-plugins.js'],
     languageOptions: {
       globals: globals.node,
     },

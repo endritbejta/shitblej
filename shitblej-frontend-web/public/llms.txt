@@ -1,0 +1,62 @@
+# Shitblej
+
+> A marketplace for buying and selling second-hand goods in Kosovo — fashion,
+> electronics, collectibles and homeware. Buyers negotiate a price with the
+> seller before checking out, so a listing's asking price is a starting point
+> rather than a fixed cost.
+
+The site is a single-page application. Content is rendered client-side, so an
+agent that does not execute JavaScript will see an empty document; render the
+page before reading it.
+
+Prices are shown in the listing's own currency and stored in minor units
+(cents) by the API, so a displayed "$120.00" is `12000` internally.
+
+## How a purchase works
+
+Buying is a negotiation, not a single action. The steps are enforced by the
+server, so skipping one is rejected rather than silently allowed:
+
+1. A buyer opens a listing and either makes an offer or takes the asking price.
+2. The seller accepts, declines, or counters. Either side can withdraw.
+3. An accepted offer reserves the item and opens a checkout window. Let the
+   window lapse and the reservation is released automatically.
+4. The buyer completes checkout with a delivery address, which creates the
+   order.
+
+Free-text messaging between a buyer and seller is **locked until an offer is
+accepted** — before that, only offer actions can be exchanged. Messages
+containing phone numbers, email addresses or social handles are rejected, so
+arranging the deal off-site is not possible through the chat.
+
+## Main pages
+
+- [Home](https://shitblej.netlify.app/): featured listings, categories and curated collections.
+- [Ladies](https://shitblej.netlify.app/collections/ladies): clothing, shoes, bags and accessories.
+- [Men](https://shitblej.netlify.app/collections/men): shirts, jackets, shoes, watches.
+- [Designer Items](https://shitblej.netlify.app/collections/designer-items): authenticated luxury pieces.
+- [Children](https://shitblej.netlify.app/collections/children): toys, clothing, strollers, books.
+- [Home](https://shitblej.netlify.app/collections/home): furniture, decor, kitchen, lighting.
+- [Electronics](https://shitblej.netlify.app/collections/electronics): phones, laptops, audio, cameras, gaming.
+- [Entertainment](https://shitblej.netlify.app/collections/entertainment): instruments, vinyl, books, films, games.
+- [Hobby & Collector Items](https://shitblej.netlify.app/collections/hobby-collector): vintage, models, coins, art, trading cards.
+- [Sport](https://shitblej.netlify.app/collections/sport): bikes, fitness, outdoor, winter gear.
+- [Search](https://shitblej.netlify.app/search): full-text search across listings.
+
+An individual listing lives at `/products/<id>`. Those pages are not listed
+here or in the sitemap because they exist per listing; reach them by crawling
+a collection page.
+
+## Requires an account
+
+These are behind authentication and redirect to sign-in otherwise. They hold
+personal data and should not be indexed or scraped:
+
+- `/sell` — create a listing
+- `/inbox` — negotiations and messages
+- `/profile` — the signed-in user's own listings and orders
+- `/wishlist` — saved items, kept per browser for guests
+
+## Optional
+
+- [Source code](https://github.com/endritbejta/shitblej): the monorepo, including the versioned REST API that serves this site. Reads are public; anything that changes data requires a token, and all endpoints are rate limited.
