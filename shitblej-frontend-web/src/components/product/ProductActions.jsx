@@ -11,7 +11,7 @@ export default function ProductActions({ onBuyNow, onMakeOffer, isMobile = false
                     </button>
                     <button 
                         onClick={onBuyNow}
-                        className="flex-1 py-3 bg-green-500 text-white font-semibold rounded-2xl shadow-lg shadow-green-500/20"
+                        className="flex-1 py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg shadow-brand-500/20"
                     >
                         Buy Now
                     </button>
@@ -24,7 +24,7 @@ export default function ProductActions({ onBuyNow, onMakeOffer, isMobile = false
         <div className="flex gap-4 pt-4">
             <button 
                 onClick={onBuyNow}
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-500/30 transition-all transform hover:-translate-y-0.5"
+                className="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-500/30 transition-all transform hover:-translate-y-0.5"
             >
                 Buy Now
             </button>

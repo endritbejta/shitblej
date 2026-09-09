@@ -17,7 +17,7 @@ export default function SearchTrigger({ variant = "bar", className, id }) {
         onClick={open}
         aria-label="Search"
         className={cn(
-          "grid h-10 w-10 place-items-center rounded-full border border-gray-200 text-gray-600 transition-colors hover:border-gray-300 hover:text-brand-600 dark:border-zinc-800 dark:text-gray-300 dark:hover:border-zinc-700",
+          "grid h-10 w-10 place-items-center rounded-full border border-gray-200 text-gray-600 transition-colors hover:border-gray-300 hover:text-brand-600 dark:border-zinc-800 dark:text-gray-300 dark:hover:border-zinc-700 dark:hover:text-brand-400",
           className
         )}
       >

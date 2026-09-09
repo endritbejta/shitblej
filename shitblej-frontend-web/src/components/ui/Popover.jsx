@@ -38,7 +38,7 @@ export default function Popover({ label, icon: Icon, active = false, badge, alig
         {Icon && <Icon className="h-4 w-4" />}
         {label}
         {badge ? (
-          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-500 px-1 text-[11px] font-semibold text-white">
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1 text-[11px] font-semibold text-white">
             {badge}
           </span>
         ) : (

@@ -32,7 +32,7 @@ export default function FeaturedCollections() {
               <p className="text-lg font-bold text-white sm:text-xl">{col.title}</p>
               <p className="mt-0.5 text-sm text-white/70">{col.subtitle}</p>
             </div>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-all duration-250 group-hover:bg-brand-500">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-all duration-250 group-hover:bg-brand-600">
               <ArrowUpRight className="h-5 w-5 group-hover:rotate-90 transition-transform" />
             </span>
           </div>

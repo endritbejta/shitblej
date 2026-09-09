@@ -65,7 +65,7 @@ export default function ProductImageGallery({ images, activeImage, setActiveImag
                             onClick={() => setActiveImage(index)}
                             className={`w-20 aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                                 activeImage === index 
-                                    ? "border-green-500 ring-2 ring-green-500/20" 
+                                    ? "border-brand-600 ring-2 ring-brand-500/20" 
                                     : "border-transparent hover:border-gray-300 dark:hover:border-zinc-600"
                             }`}
                         >

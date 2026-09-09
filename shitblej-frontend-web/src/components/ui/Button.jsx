@@ -17,7 +17,7 @@ const base =
 
 const variants = {
   primary:
-    "bg-brand-500 text-white hover:bg-brand-600 shadow-brand hover:-translate-y-0.5 active:translate-y-0",
+    "bg-brand-600 text-white hover:bg-brand-700 shadow-brand hover:-translate-y-0.5 active:translate-y-0",
   secondary:
     "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700",
   outline:

@@ -57,7 +57,7 @@ const Header = () => {
     <Link to="/wishlist" aria-label="Wishlist" className={cn(iconLink, className)}>
       <Heart className="h-[18px] w-[18px]" />
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white">
+        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white">
           {count > 9 ? "9+" : count}
         </span>
       )}

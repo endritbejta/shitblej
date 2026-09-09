@@ -60,7 +60,7 @@ export default function ProfileHeader({
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadingAvatar}
             aria-label="Change profile photo"
-            className="absolute -bottom-0.5 -right-0.5 grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-brand-500 text-white shadow-sm transition-colors hover:bg-brand-600 disabled:opacity-60 dark:border-zinc-900"
+            className="absolute -bottom-0.5 -right-0.5 grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-brand-600 text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60 dark:border-zinc-900"
           >
             {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
           </button>

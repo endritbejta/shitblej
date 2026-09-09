@@ -345,7 +345,7 @@ export default function SearchOverlay({ open, onClose }) {
                         data-index={row.index}
                         onMouseEnter={() => setActiveIndex(row.index)}
                         onClick={() => flat[row.index].onSelect()}
-                        className={cn("chip transition-colors", isActive(row.index) && "!bg-brand-500 !text-white")}
+                        className={cn("chip transition-colors", isActive(row.index) && "!bg-brand-600 !text-white")}
                       >
                         <TrendingUp className="h-3 w-3" />
                         {row.data}

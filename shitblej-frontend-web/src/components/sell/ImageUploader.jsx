@@ -94,7 +94,7 @@ export default function ImageUploader({ previews, onAdd, onRemove, onSetCover, m
               <img src={src} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
 
               {i === 0 ? (
-                <span className="absolute left-1.5 top-1.5 rounded-md bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                <span className="absolute left-1.5 top-1.5 rounded-md bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                   Cover
                 </span>
               ) : (
@@ -122,7 +122,7 @@ export default function ImageUploader({ previews, onAdd, onRemove, onSetCover, m
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 transition-colors hover:border-brand-500 hover:text-brand-600 dark:border-zinc-700"
+              className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 text-gray-400 transition-colors hover:border-brand-500 hover:text-brand-600 dark:border-zinc-700 dark:hover:text-brand-400"
             >
               <ImagePlus className="h-6 w-6" />
               <span className="text-xs font-medium">Add</span>
