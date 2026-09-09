@@ -12,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { cn } from "../utils/cn";
 import BrandMark from "../components/ui/BrandMark";
+import SkipLinks from "../components/SkipLinks";
 
 const iconLink =
   "relative grid h-10 w-10 place-items-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-brand-400";
@@ -70,6 +71,11 @@ const Header = () => {
         scrolled ? "border-gray-200 shadow-sm dark:border-zinc-800" : "border-transparent"
       )}
     >
+      {/* First focusable elements on the page. Inside the header because both
+          AppLayout and ProductDetail render it, and because two of the three
+          targets live here. */}
+      <SkipLinks />
+
       <Container>
         <div className="flex h-16 items-center gap-4">
           <Link
@@ -84,7 +90,12 @@ const Header = () => {
 
           {/* Primary, width-filling search (desktop) */}
           <div className="hidden flex-1 justify-center px-2 md:flex">
-            <SearchTrigger variant="bar" className="w-full max-w-2xl" />
+            {/* #search points at the trigger itself, not a wrapper: it is a
+                real <button>, so it is natively focusable, and pressing Enter
+                on it opens the search overlay - exactly what someone who
+                skipped here wants next. The mobile icon trigger deliberately
+                does not carry the id; two elements cannot share one. */}
+            <SearchTrigger id="search" variant="bar" className="w-full max-w-2xl" />
           </div>
 
           {/* Desktop actions */}
