@@ -94,6 +94,40 @@ jobs:
         env:
           VITE_API_URL: https://api.invalid
 
+  listing-ai:
+    name: Listing AI (typecheck + tests + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: listing-ai
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: listing-ai/package-lock.json
+
+      - run: npm ci
+
+      - run: npm audit --audit-level=high
+
+      # tsc is this lane's linter. The service is TypeScript end to end, so a
+      # type error here is the same class of bug ESLint catches in the JS apps.
+      - run: npm run typecheck
+
+      # Every test runs offline against a stubbed analyzer, so this lane needs
+      # no ANTHROPIC_API_KEY and costs nothing to run. The eval suite
+      # (npm run eval) does make real, billed model calls and is deliberately
+      # not wired in here - it is run by hand when the prompt or model changes.
+      - run: npm test
+
+      # Catches broken imports that typecheck alone can miss, and proves the
+      # published start script has something to run.
+      - run: npm run build
+
   e2e:
     name: E2E (browser against the real API)
     runs-on: ubuntu-latest

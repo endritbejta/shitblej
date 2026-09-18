@@ -86,6 +86,26 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().optional(),
   RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().optional(),
   RATE_LIMIT_API_MAX: z.coerce.number().int().positive().optional(),
+  RATE_LIMIT_SUGGEST_MAX: z.coerce.number().int().positive().optional(),
+
+  // Base URL of the listing-ai service (see listing-ai/README.md).
+  //
+  // Optional, and the whole feature is keyed off it: unset means
+  // POST /products/suggest answers 503 and the web app hides the button. That
+  // is deliberate - a listing assistant is an assist, and someone working on
+  // the marketplace should not need a second service running to create a
+  // listing.
+  LISTING_AI_URL: z.string().url().optional(),
+
+  // A vision call with thinking enabled routinely takes ten seconds or more,
+  // and the service may be cold-starting on top of that. Too tight a timeout
+  // turns a slow suggestion into a failed one after we have already paid for
+  // it upstream.
+  LISTING_AI_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(45 * 1000),
 });
 
 // Cross-field rules. These are the mistakes that would otherwise surface as a
@@ -144,15 +164,21 @@ const env = parsed.data;
 // unlimited: the suite drives hundreds of requests through one process from a
 // single address, and throttling it would test the limiter instead of the app.
 // The limiter itself is covered directly in tests/rateLimit.test.js.
+//
+// suggestMax is far tighter than apiMax because that endpoint is the only one
+// that costs money per request: it forwards to a paid vision model. 20 per
+// window is generous for a seller drafting a listing and useless to anyone
+// trying to run up the bill.
 const RATE_LIMIT_DEFAULTS =
   env.NODE_ENV === "test"
-    ? { windowMs: 15 * 60 * 1000, authMax: 1e6, apiMax: 1e6 }
-    : { windowMs: 15 * 60 * 1000, authMax: 10, apiMax: 300 };
+    ? { windowMs: 15 * 60 * 1000, authMax: 1e6, apiMax: 1e6, suggestMax: 1e6 }
+    : { windowMs: 15 * 60 * 1000, authMax: 10, apiMax: 300, suggestMax: 20 };
 
 const RATE_LIMITS = {
   windowMs: env.RATE_LIMIT_WINDOW_MS ?? RATE_LIMIT_DEFAULTS.windowMs,
   authMax: env.RATE_LIMIT_AUTH_MAX ?? RATE_LIMIT_DEFAULTS.authMax,
   apiMax: env.RATE_LIMIT_API_MAX ?? RATE_LIMIT_DEFAULTS.apiMax,
+  suggestMax: env.RATE_LIMIT_SUGGEST_MAX ?? RATE_LIMIT_DEFAULTS.suggestMax,
 };
 
 // Export a structured, frozen config object. Application code should read from
@@ -179,6 +205,13 @@ const config = Object.freeze({
 
   notifications: {
     ttlDays: env.NOTIFICATION_TTL_DAYS,
+  },
+
+  listingAi: {
+    // Trailing slash stripped so callers can join paths without doubling it.
+    url: env.LISTING_AI_URL ? env.LISTING_AI_URL.replace(/\/+$/, "") : null,
+    timeoutMs: env.LISTING_AI_TIMEOUT_MS,
+    enabled: Boolean(env.LISTING_AI_URL),
   },
 
   log: {

@@ -1,5 +1,6 @@
 const asyncHandler = require("../../middleware/async");
 const productService = require("./product.service");
+const listingSuggestionService = require("./listingSuggestion.service");
 
 // @desc    Get all products
 // @route   GET /api/v1/products
@@ -66,4 +67,21 @@ exports.searchProducts = asyncHandler(async (req, res) => {
   );
 
   res.status(200).json({ success: true, count, pagination, data: products });
+});
+
+// @desc    Draft a listing from a photo
+// @route   POST /api/v1/products/suggest
+// @access  Private
+//
+// Returns the draft only. Nothing is written: the seller reviews and edits
+// every field, then posts it through the normal create endpoint, which
+// validates it like any other listing. That keeps the assistant incapable of
+// creating anything on its own.
+exports.suggestListing = asyncHandler(async (req, res) => {
+  const { suggestion, meta } = await listingSuggestionService.requestSuggestion({
+    image: req.body.image,
+    hint: req.body.hint,
+  });
+
+  res.status(200).json({ success: true, data: suggestion, meta });
 });

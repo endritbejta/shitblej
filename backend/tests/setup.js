@@ -23,3 +23,12 @@ process.env.UPLOAD_DRIVER = process.env.UPLOAD_DRIVER || "local";
 process.env.UPLOAD_DIR =
   process.env.UPLOAD_DIR ||
   require("path").join(require("os").tmpdir(), "shitblej-test-uploads");
+
+// Points the listing-suggestion client at a host that does not exist, on
+// purpose. The config module reads the environment once at boot, and the
+// shared server is required by setupFilesAfterEnv before any test file's body
+// runs, so a test cannot turn this feature on later - it has to be on here.
+// Nothing ever reaches this URL: tests/listingSuggestions.test.js stubs
+// global.fetch, and no other test calls that endpoint.
+process.env.LISTING_AI_URL =
+  process.env.LISTING_AI_URL || "http://listing-ai.test";

@@ -9,6 +9,9 @@ const { apiLimiter } = require("./middleware/rateLimit");
 const { noStore } = require("./middleware/cache");
 const requestLog = require("./middleware/requestLog");
 const healthRoutes = require("./routes/health");
+const {
+  SUGGESTION_BODY_LIMIT_BYTES,
+} = require("./modules/products/product.validation");
 const apiRoutes = require("./routes");
 
 // Cross-module event subscribers. Registered at app build so every entry
@@ -42,9 +45,21 @@ app.use(
   })
 );
 
-// Body parser. Capped well below the default 100kb: no endpoint accepts a
-// large JSON document (images go through multipart/Cloudinary), so a bigger
-// limit is only useful to someone trying to exhaust memory.
+// Body parser. Capped well below the default 100kb: listing images go through
+// multipart/Cloudinary, so a bigger global limit is only useful to someone
+// trying to exhaust memory.
+//
+// One endpoint does take a large JSON body - POST /products/suggest carries a
+// base64 photo - so that single path gets its own parser with its own limit,
+// mounted first. Order is the mechanism: body-parser marks a request it has
+// parsed and the general parser below then skips it, so the 32kb cap still
+// applies to everything else. Raising the global limit instead would hand the
+// memory-exhaustion surface to every endpoint to serve one.
+app.use(
+  "/api/v1/products/suggest",
+  express.json({ limit: SUGGESTION_BODY_LIMIT_BYTES })
+);
+
 app.use(express.json({ limit: "32kb" }));
 
 // Liveness and readiness. Mounted outside /api/v1 and ahead of the rate

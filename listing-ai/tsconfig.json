@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    "strict": true,
+    // Indexing an array or record can return undefined, and pretending
+    // otherwise is how a suggestion pipeline ends up writing "undefined" into a
+    // form field. Worth the extra guards at the call sites.
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+
+    "skipLibCheck": true,
+    // This config is for editors and `npm run typecheck`, so it covers tests and
+    // evals too. The shipped build is tsconfig.build.json, which compiles src
+    // alone - tests have no business in dist/.
+    "noEmit": true
+  },
+  "include": ["src", "tests", "evals"]
+}

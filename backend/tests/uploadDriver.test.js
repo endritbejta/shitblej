@@ -209,7 +209,17 @@ describe("rate limit overrides", () => {
       windowMs: 15 * 60 * 1000,
       authMax: 10,
       apiMax: 300,
+      suggestMax: 20,
     });
+  });
+
+  it("holds the suggestion limit far below the general API limit", () => {
+    // POST /products/suggest is the only endpoint that costs money per call.
+    // Sharing the general allowance would let one client spend 300 vision
+    // calls a window.
+    const { apiMax, suggestMax } = readLimits({});
+
+    expect(suggestMax).toBeLessThan(apiMax);
   });
 
   it("lets each limit be overridden independently", () => {
@@ -219,11 +229,19 @@ describe("rate limit overrides", () => {
       windowMs: 15 * 60 * 1000,
       authMax: 500,
       apiMax: 300,
+      suggestMax: 20,
     });
     expect(readLimits({ RATE_LIMIT_WINDOW_MS: "60000", RATE_LIMIT_API_MAX: "50" })).toEqual({
       windowMs: 60000,
       authMax: 10,
       apiMax: 50,
+      suggestMax: 20,
+    });
+    expect(readLimits({ RATE_LIMIT_SUGGEST_MAX: "5" })).toEqual({
+      windowMs: 15 * 60 * 1000,
+      authMax: 10,
+      apiMax: 300,
+      suggestMax: 5,
     });
   });
 

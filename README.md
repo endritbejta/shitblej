@@ -25,6 +25,7 @@ Key capabilities include:
 shitblej/
 ├── backend/                   # Express API, Socket.IO, MongoDB, and tests
 ├── shitblej-frontend-web/     # React and Vite web application
+├── listing-ai/                # Listing assistant: photo -> draft listing (TypeScript)
 ├── e2e/                       # Playwright: a browser against the real stack
 ├── netlify.toml               # Web deployment configuration
 └── README.md
@@ -36,7 +37,8 @@ shitblej/
 | --- | --- |
 | Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.IO, JWT, Zod, Cloudinary |
 | Web | React 19, Vite 7, React Router, Tailwind CSS, Axios, i18next, Swiper |
-| Testing | Jest, Supertest, MongoDB Memory Server (backend); Vitest, React Testing Library (web); Playwright (end-to-end) |
+| Listing AI | TypeScript, Fastify, Zod, Anthropic SDK (Claude vision) |
+| Testing | Jest, Supertest, MongoDB Memory Server (backend); Vitest, React Testing Library (web and listing AI); Playwright (end-to-end) |
 
 ## Marketplace workflow
 
@@ -254,6 +256,7 @@ Backend integration coverage includes users, products, saved items, offers, nego
 | --- | --- | --- |
 | Backend | `backend/tests` | Express driven by supertest against an in-memory MongoDB |
 | Web | `shitblej-frontend-web/src/**/*.test.{js,jsx}` | Components and hooks in jsdom, API client mocked |
+| Listing AI | `listing-ai/tests` | Fastify via inject(), model calls stubbed - runs offline with no API key |
 | End-to-end | `e2e/tests` | Chromium against the real API and a real database, both origins |
 
 The three are complementary rather than layered: the first two each see one
