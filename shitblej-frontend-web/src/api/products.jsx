@@ -41,6 +41,21 @@ export async function createProduct(payload, config = {}) {
     return data;
 }
 
+// Ask the API to draft a listing from a photo.
+//
+// Nothing is created: the response is a draft the seller reviews and edits
+// before posting it through createProduct like any other listing.
+//
+// `image` is { kind: "base64", mediaType, data } — see dataUrlToImage in
+// utils/dataUrl.js for turning a FileReader data URL into it.
+export async function suggestListing({ image, hint }) {
+    const { data } = await client.post("/products/suggest", {
+        image,
+        ...(hint ? { hint } : {}),
+    });
+    return data.data;
+}
+
 // 🔍 Search products by keyword
 export async function searchProducts(query) {
     if (!query || query.trim().length < 2) return [];

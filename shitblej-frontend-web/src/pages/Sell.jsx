@@ -8,6 +8,7 @@ import Button from "../components/ui/Button";
 import Alert from "../components/ui/Alert";
 import ProductCard from "../components/ui/ProductCard";
 import ImageUploader from "../components/sell/ImageUploader";
+import SuggestListing from "../components/sell/SuggestListing";
 
 const MAX_IMAGES = 5; // must match the backend multer limit (upload.array("images", 5))
 
@@ -48,6 +49,10 @@ export default function Sell() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState(EMPTY);
+  // Which fields the seller has edited. A suggestion fills only what they have
+  // not touched, so "condition" - which starts at a default rather than empty -
+  // can be told apart from a condition they actually chose.
+  const [touched, setTouched] = useState(() => new Set());
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [errors, setErrors] = useState({});
@@ -58,8 +63,52 @@ export default function Sell() {
 
   const setField = (name, value) => {
     setForm((p) => ({ ...p, [name]: value }));
+    setTouched((p) => (p.has(name) ? p : new Set(p).add(name)));
     setErrors((p) => (p[name] ? { ...p, [name]: undefined } : p));
     setSubmitError("");
+  };
+
+  // Apply a drafted listing without ever overwriting the seller.
+  //
+  // A field is theirs if they have typed in it or it already holds a value, and
+  // those are left alone. Returns what changed so SuggestListing can say so
+  // plainly rather than silently rewriting the form under them.
+  const applySuggestion = (suggestion) => {
+    const filled = [];
+    const skipped = [];
+    const next = {};
+
+    const offer = (key, label, value) => {
+      if (value === undefined || value === null || value === "") return;
+      const current = String(form[key] ?? "").trim();
+      const isSellers = touched.has(key) || (current !== "" && current !== EMPTY[key]);
+      if (isSellers) {
+        skipped.push(label);
+        return;
+      }
+      next[key] = String(value);
+      filled.push(label);
+    };
+
+    offer("name", "title", suggestion.name);
+    offer("description", "description", suggestion.description);
+    offer("category", "category", suggestion.category);
+    offer("condition", "condition", suggestion.condition);
+    offer("brand", "brand", suggestion.brand);
+    offer("size", "size", suggestion.size);
+    offer("price", "price", suggestion.price?.suggested);
+
+    if (Object.keys(next).length > 0) {
+      setForm((p) => ({ ...p, ...next }));
+      // Clear validation errors on the fields we just filled.
+      setErrors((p) => {
+        const cleared = { ...p };
+        for (const key of Object.keys(next)) delete cleared[key];
+        return cleared;
+      });
+    }
+
+    return { filled, skipped, price: suggestion.price, warnings: suggestion.warnings };
   };
 
   const addImages = (files) => {
@@ -138,6 +187,7 @@ export default function Sell() {
 
   const resetForm = () => {
     setForm(EMPTY);
+    setTouched(new Set());
     setImages([]);
     setPreviews([]);
     setErrors({});
@@ -215,6 +265,13 @@ export default function Sell() {
               onSetCover={setCover}
               max={MAX_IMAGES}
               error={errors.images}
+            />
+
+            <SuggestListing
+              previewDataUrl={previews[0]}
+              hint={form.name}
+              onApply={applySuggestion}
+              disabled={loading}
             />
           </Section>
 
