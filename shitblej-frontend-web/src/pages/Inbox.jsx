@@ -12,8 +12,13 @@ import { getSocket } from "../lib/socket";
 import { queryKeys } from "../lib/queryClient";
 import { formatConversationTime } from "../utils/dateFormat";
 import { cn } from "../utils/cn";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function Inbox() {
+  useDocumentMeta({
+    title: pageTitle("Inbox"),
+    description: "View your Shitblej conversations, offers and marketplace messages.",
+  });
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
