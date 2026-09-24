@@ -5,12 +5,18 @@ import { getProducts } from "../api/products";
 import { queryKeys } from "../lib/queryClient";
 import ProductBrowser from "../components/collection/ProductBrowser";
 import { CATEGORIES } from "../constants";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function CollectionPage() {
   const { id } = useParams();
 
   const category = CATEGORIES.find((c) => c.id === id);
   const title = category?.label || id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, " ");
+
+  useDocumentMeta({
+    title: pageTitle(title),
+    description: `Browse the latest ${title.toLowerCase()} listings from sellers across Kosovo on Shitblej.`,
+  });
 
   const params = { category: id, limit: 40 };
 
