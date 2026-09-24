@@ -13,6 +13,7 @@ import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
 import Alert from "../components/ui/Alert";
 import { cn } from "../utils/cn";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 const TABS = [
   { id: "listings", label: "My listings" },
@@ -20,6 +21,10 @@ const TABS = [
 ];
 
 export default function Profile() {
+  useDocumentMeta({
+    title: pageTitle("Profile"),
+    description: "Manage your Shitblej profile, listings and saved items.",
+  });
   const { user, logout, loading: authLoading, refreshUser } = useAuth();
   const { items: savedItems } = useWishlist();
   const navigate = useNavigate();
