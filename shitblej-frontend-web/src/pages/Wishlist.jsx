@@ -3,8 +3,13 @@ import { useWishlist } from "../context/WishlistContext";
 import ProductGrid from "../components/ui/ProductGrid";
 import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function WishlistPage() {
+  useDocumentMeta({
+    title: pageTitle("Wishlist"),
+    description: "View the listings you saved on Shitblej.",
+  });
   const { items, count, clear } = useWishlist();
 
   return (

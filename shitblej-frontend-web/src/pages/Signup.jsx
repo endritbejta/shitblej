@@ -6,8 +6,13 @@ import AuthShell from "../components/auth/AuthShell";
 import { TextField } from "../components/ui/form";
 import Button from "../components/ui/Button";
 import Alert from "../components/ui/Alert";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function Signup() {
+  useDocumentMeta({
+    title: pageTitle("Create account"),
+    description: "Create a Shitblej account to buy and sell second-hand items across Kosovo.",
+  });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

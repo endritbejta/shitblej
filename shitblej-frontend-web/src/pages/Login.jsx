@@ -6,8 +6,13 @@ import AuthShell from "../components/auth/AuthShell";
 import { TextField } from "../components/ui/form";
 import Button from "../components/ui/Button";
 import Alert from "../components/ui/Alert";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function Login() {
+  useDocumentMeta({
+    title: pageTitle("Sign in"),
+    description: "Sign in to your Shitblej account to buy, sell and manage your marketplace activity.",
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

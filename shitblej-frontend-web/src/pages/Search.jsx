@@ -7,10 +7,18 @@ import ProductBrowser from "../components/collection/ProductBrowser";
 import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
 import { TRENDING_SEARCHES } from "../constants";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function SearchResults() {
   const [params] = useSearchParams();
   const query = (params.get("q") || "").trim();
+
+  useDocumentMeta({
+    title: pageTitle(query ? `Search: ${query}` : "Search"),
+    description: query
+      ? `Search Shitblej for ${query} and browse matching listings from sellers across Kosovo.`
+      : "Search second-hand fashion, electronics, collectibles and more on Shitblej.",
+  });
 
 
   // Keyed on the term, so going back to a previous search is instant and a
