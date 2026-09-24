@@ -10,8 +10,11 @@ import ValueProps from "../components/home/ValueProps";
 import SellCta from "../components/home/SellCta";
 import SectionHeader from "../components/ui/SectionHeader";
 import ProductGrid from "../components/ui/ProductGrid";
+import { useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function Home() {
+  useDocumentMeta();
+
   const params = { limit: 30, sort: "-createdAt" };
 
   // Cached, so returning to the home page from a product renders instantly
