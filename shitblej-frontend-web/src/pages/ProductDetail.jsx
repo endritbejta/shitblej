@@ -15,6 +15,7 @@ import ProductActions from "../components/product/ProductActions";
 import MakeOfferDialog from "../components/offers/MakeOfferDialog";
 import BuyNowDialog from "../components/offers/BuyNowDialog";
 import Loading from "../components/Loading";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -46,6 +47,15 @@ export default function ProductDetail() {
             // The endpoint has been seen returning both shapes.
             return data.data || data;
         },
+    });
+
+    useDocumentMeta({
+        title: product?.name ? pageTitle(product.name) : pageTitle("Product"),
+        description:
+            product?.description ||
+            (product?.name
+                ? `Buy ${product.name} on Shitblej, Kosovo's marketplace for second-hand goods.`
+                : "View this listing on Shitblej."),
     });
 
     const error = isError ? "Failed to load product." : null;
