@@ -9,6 +9,7 @@ import Alert from "../components/ui/Alert";
 import ProductCard from "../components/ui/ProductCard";
 import ImageUploader from "../components/sell/ImageUploader";
 import SuggestListing from "../components/sell/SuggestListing";
+import { pageTitle, useDocumentMeta } from "../hooks/useDocumentMeta";
 
 const MAX_IMAGES = 5; // must match the backend multer limit (upload.array("images", 5))
 
@@ -46,6 +47,10 @@ function Section({ step, title, children }) {
 }
 
 export default function Sell() {
+  useDocumentMeta({
+    title: pageTitle("Sell an item"),
+    description: "Create a new listing and sell your item on Shitblej.",
+  });
   const navigate = useNavigate();
 
   const [form, setForm] = useState(EMPTY);
